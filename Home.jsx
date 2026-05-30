@@ -6,6 +6,7 @@ import {
 } from "./storage.js";
 import { weekIdFor } from "./week.js";
 import { aggregateWeek, fmtPoints } from "./aggregate.js";
+import { useInstallPrompt } from "./useInstallPrompt.js";
 
 /**
  * Top screen — week summary + nav to management / daily input screens.
@@ -16,6 +17,7 @@ export default function Home({ goTo }) {
   const [customers] = useLocalStorage(STORAGE_KEYS.customers, []);
   const [teams] = useLocalStorage(STORAGE_KEYS.teams, []);
   const [weeks] = useLocalStorage(STORAGE_KEYS.weeks, {});
+  const { canInstall, install } = useInstallPrompt();
 
   const weekData = weeks[todayWid] ?? emptyWeek();
   const weeklyTotals = useMemo(
@@ -99,7 +101,19 @@ export default function Home({ goTo }) {
           </div>
         </section>
 
-        <p className="hint">Stage 4 完了 — 週間精算 + B収支式</p>
+        {canInstall && (
+          <section className="card install-card">
+            <h2>ホーム画面に追加</h2>
+            <p className="empty" style={{ marginBottom: 12 }}>
+              アプリのようにフルスクリーンで起動できます。
+            </p>
+            <button className="primary install-btn" onClick={install}>
+              📱 ホーム画面に追加する
+            </button>
+          </section>
+        )}
+
+        <p className="hint">v1.0 — 全機能完成 ✓</p>
       </main>
     </div>
   );

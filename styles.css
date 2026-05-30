@@ -30,6 +30,13 @@
   box-sizing: border-box;
 }
 
+html {
+  /* iOS Safari の青タップハイライトを消す */
+  -webkit-tap-highlight-color: transparent;
+  /* 300ms タップ遅延を消す + 自動 pinch-zoom 抑制（ピンチは残る） */
+  touch-action: manipulation;
+}
+
 html,
 body,
 #root {
@@ -45,6 +52,9 @@ body {
   /* iOS safe-area aware */
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
     env(safe-area-inset-bottom) env(safe-area-inset-left);
+  /* テキスト選択を全面では無効にせず、入力欄のみ許可（下の input ルール） */
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 button {
@@ -56,6 +66,14 @@ button {
   min-height: var(--tap);
   padding: 0 16px;
   border-radius: var(--radius);
+  /* 押し込み感の transition */
+  transition: transform 0.08s ease, filter 0.1s ease, opacity 0.1s ease;
+}
+
+/* タップフィードバック ── disabled には適用しない */
+button:active:not(:disabled) {
+  transform: scale(0.97);
+  filter: brightness(0.92);
 }
 
 input,
@@ -68,6 +86,11 @@ textarea {
   border-radius: var(--radius-sm);
   padding: 8px 10px;
   min-height: var(--tap);
+  /* iOS Safari の auto-zoom を防ぐため、フォントサイズは常に 16px 以上を保つ */
+  font-size: 16px;
+  /* テキスト選択は入力欄でのみ許可 */
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 input:focus,
@@ -561,7 +584,8 @@ textarea:focus {
   width: 100%;
   min-height: 32px;
   padding: 4px 6px;
-  font-size: 12px;
+  /* iOS auto-zoom 防止 */
+  font-size: 16px;
   margin-bottom: 4px;
 }
 
@@ -608,7 +632,8 @@ textarea:focus {
   width: 100%;
   min-height: 32px;
   padding: 4px 6px;
-  font-size: 14px;
+  /* iOS auto-zoom 防止のため 16px 以上を保つ */
+  font-size: 16px;
   text-align: center;
   font-variant-numeric: tabular-nums;
   /* Hide the spinner on number inputs in Webkit */
@@ -934,4 +959,55 @@ textarea:focus {
 
 .big-result.orange {
   color: var(--orange);
+}
+
+/* ─── Stage 5: install prompt card + polish ──────────────────────────── */
+
+.install-card {
+  border: 1px solid var(--plus);
+  background: linear-gradient(
+    180deg,
+    rgba(45, 212, 160, 0.05),
+    var(--surface)
+  );
+}
+
+.install-btn {
+  width: 100%;
+  font-size: 15px;
+  min-height: 48px;
+}
+
+/* iOS Safari で input にフォーカス → ズームしないことを確実にするため
+   全ての type=number にも保険 */
+input[type="number"],
+input[type="text"],
+input[type="tel"] {
+  font-size: max(16px, 1rem);
+}
+
+/* スクロール末端で iOS のラバーバンドが背景を見せないよう、html を bg と同色に */
+html {
+  background: var(--bg);
+}
+
+/* グランドトータルが大きい数になっても折り返さない */
+.grand-total,
+.row-total,
+.col-total {
+  white-space: nowrap;
+}
+
+/* PWA standalone モード（ホーム画面起動）のとき、上部のステータスバー
+   分を確保。iOS は safe-area-inset-top で取れる。 */
+@media (display-mode: standalone) {
+  body {
+    padding-top: max(env(safe-area-inset-top), 12px);
+  }
+}
+
+/* iOS / iPadOS でスクロールが慣性スクロールになるよう */
+.grid-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }

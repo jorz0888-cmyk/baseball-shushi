@@ -8,6 +8,7 @@
   "background_color": "#0a0e17",
   "theme_color": "#0a0e17",
   "lang": "ja",
+  "categories": ["finance", "utilities"],
   "icons": [
     {
       "src": "/icon.svg",
