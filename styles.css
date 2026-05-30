@@ -657,11 +657,14 @@ textarea:focus {
   border: 1px solid var(--line);
   border-radius: 4px;
   font-size: 11px;
-  padding: 0 2px;
+  padding: 0 4px;
   min-height: 24px;
   color: var(--ink-muted);
   white-space: nowrap;
   letter-spacing: -0.02em;
+  /* チーム名が長い場合は省略 */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .side-btn.active {

@@ -307,6 +307,12 @@ export default function DailyInputScreen({ back }) {
                                   bet={bet}
                                   value={value}
                                   gameHasResult={Boolean(g.result)}
+                                  giveLabel={teamName(g.teamId)}
+                                  oppLabel={
+                                    g.opponentTeamId
+                                      ? teamName(g.opponentTeamId)
+                                      : null
+                                  }
                                   onChange={(p, s) =>
                                     upsertBet(c.id, g.id, p, s)
                                   }
@@ -383,8 +389,19 @@ function formatResultLabel(result) {
  * 1セル分の入力ウィジェット。
  * 親が bet オブジェクトを真値として渡し、内部で side のみローカル状態
  * （bet が無くても「バック」を先に選べるようにするため）。
+ *
+ * giveLabel / oppLabel に出し側・相手チーム名を渡すと、トグルが
+ * 「巨人 / 阪神」のように実チーム名で表示される。oppLabel が null の
+ * 試合（対戦相手未指定）はフォールバックで「バック」のまま。
  */
-function BetCell({ bet, value, gameHasResult, onChange }) {
+function BetCell({
+  bet,
+  value,
+  gameHasResult,
+  giveLabel,
+  oppLabel,
+  onChange,
+}) {
   const [side, setSide] = useState(bet?.side ?? "give");
 
   // External update synced (e.g., bet edited elsewhere).
@@ -393,6 +410,8 @@ function BetCell({ bet, value, gameHasResult, onChange }) {
   }, [bet?.side]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const pointsDisplay = bet?.points ?? "";
+  const giveText = giveLabel || "出";
+  const oppText = oppLabel || "バック";
 
   function handlePointsInput(val) {
     onChange(val, side);
@@ -421,17 +440,17 @@ function BetCell({ bet, value, gameHasResult, onChange }) {
           type="button"
           className={`side-btn${side === "give" ? " active" : ""}`}
           onClick={() => changeSide("give")}
-          title="ハンデ出し側"
+          title={`ハンデ出し側 (${giveText})`}
         >
-          出
+          {giveText}
         </button>
         <button
           type="button"
           className={`side-btn${side === "receive" ? " active" : ""}`}
           onClick={() => changeSide("receive")}
-          title="ハンデ受け側 (バック)"
+          title={`ハンデ受け側 (${oppText})`}
         >
-          バック
+          {oppText}
         </button>
       </div>
       <div className="bet-result">
