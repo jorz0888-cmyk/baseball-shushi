@@ -17,7 +17,7 @@ import GameResultModal from "./GameResultModal.jsx";
  *
  * - 上部: 月〜日タブで対象日を切り替え
  * - 中段: 試合追加フォーム（チーム＋ハンデ）
- * - グリッド: 顧客 × 試合。各セルでポイントと出/受を入力
+ * - グリッド: 顧客 × 試合。各セルでポイントと出/バックを入力
  * - 列計（試合別） / 行計（顧客別） / 全体計をリアルタイム表示
  *
  * 状態は localStorage の bb-calc-weeks 配下に書き戻す。週は ISO 週 ID
@@ -382,7 +382,7 @@ function formatResultLabel(result) {
 /**
  * 1セル分の入力ウィジェット。
  * 親が bet オブジェクトを真値として渡し、内部で side のみローカル状態
- * （bet が無くても「受」を先に選べるようにするため）。
+ * （bet が無くても「バック」を先に選べるようにするため）。
  */
 function BetCell({ bet, value, gameHasResult, onChange }) {
   const [side, setSide] = useState(bet?.side ?? "give");
@@ -429,9 +429,9 @@ function BetCell({ bet, value, gameHasResult, onChange }) {
           type="button"
           className={`side-btn${side === "receive" ? " active" : ""}`}
           onClick={() => changeSide("receive")}
-          title="ハンデ受け側"
+          title="ハンデ受け側 (バック)"
         >
-          受
+          バック
         </button>
       </div>
       <div className="bet-result">
