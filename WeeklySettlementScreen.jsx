@@ -180,13 +180,15 @@ function CustomerCard({ customer, settlement }) {
         <div className="row row-big">
           <dt>2部有り合計</dt>
           <dd className="num">
-            <SnBig value={with2bu} color="plus" />
+            {/* 値の符号に応じて緑（プラス）/赤（マイナス）/グレー（0） */}
+            <SnBig value={with2bu} />
           </dd>
         </div>
         <div className="row row-big">
           <dt>2部無し合計</dt>
           <dd className="num">
-            <SnBig value={without2bu} color="orange" />
+            {/* 仕様: 常にオレンジ（プラスでもマイナスでも） */}
+            <SnBig value={without2bu} fixedColor="orange" />
           </dd>
         </div>
       </dl>
@@ -217,12 +219,22 @@ function Sn({ value, small = false, strong = false }) {
 
 /**
  * 2部有り / 2部無し合計用の大きいサイズ。
- * 0 のときも明示的に色を当てる（その金額が "0" だと分かりやすい）。
+ *
+ * - fixedColor 未指定: 値の符号で plus/minus/neutral を自動選択
+ *   （2部有り合計 = マイナスなら赤、プラスなら緑）
+ * - fixedColor 指定: その色固定（2部無し合計 = 常にオレンジ）
  */
-function SnBig({ value, color }) {
+function SnBig({ value, fixedColor }) {
   const sign = value > 0 ? "+" : value < 0 ? "−" : "";
+  const cls = fixedColor
+    ? fixedColor
+    : value > 0
+      ? "plus"
+      : value < 0
+        ? "minus"
+        : "neutral";
   return (
-    <span className={`big-result ${color}`}>
+    <span className={`big-result ${cls}`}>
       {sign}
       {fmtPoints(Math.abs(value))}
     </span>

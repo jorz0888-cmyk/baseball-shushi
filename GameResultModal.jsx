@@ -16,6 +16,7 @@ import { useState, useEffect } from "react";
  */
 export default function GameResultModal({
   teamName,
+  opponentTeamName,
   handicap,
   initial,
   onSave,
@@ -54,9 +55,18 @@ export default function GameResultModal({
     <div className="modal-backdrop" onClick={onCancel}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <p className="modal-message">
-          {teamName} <span className="neutral">(ハンデ {handicap})</span>
+          <strong>{teamName}</strong>
+          {opponentTeamName && (
+            <>
+              <span className="neutral"> vs </span>
+              {opponentTeamName}
+            </>
+          )}{" "}
+          <span className="neutral">
+            (ハンデ {handicap === "0" ? "スクラッチ" : handicap})
+          </span>
           <br />
-          試合結果を入力
+          試合結果を入力（{teamName} の勝/負/引分）
         </p>
 
         <div className="outcome-buttons">

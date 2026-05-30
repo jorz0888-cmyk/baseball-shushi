@@ -1011,3 +1011,71 @@ html {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
+
+/* ─── revision pack: opponent team / scratch / 3-col summary ─────────── */
+
+/* 試合追加フォームを「ラベル + 入力」の縦並びに変更 */
+.add-game-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 12px;
+  align-items: center;
+}
+
+.add-game-label {
+  font-size: 13px;
+  color: var(--ink-muted);
+  text-align: right;
+}
+
+.add-game-btn {
+  /* ラベル列も使って 2 列全幅 */
+  grid-column: 1 / -1;
+  margin-top: 4px;
+}
+
+/* グリッドヘッダの試合表示: 出し側チーム + ハンデ符号 + vs + 対戦相手 */
+.give-team {
+  font-weight: 700;
+}
+
+.give-handi {
+  color: var(--minus);
+  font-weight: 600;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.vs-sep {
+  color: var(--ink-subtle);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.opp-team {
+  color: var(--ink-muted);
+  font-weight: 500;
+  font-size: 12px;
+}
+
+/* 3列収支テーブル (Home) ─ 顧客名 + ＋ + − + 週合計 */
+.summary-table-3col th,
+.summary-table-3col td {
+  font-size: 13px;
+  padding: 6px 4px;
+}
+
+.summary-table-3col th:first-child,
+.summary-table-3col td:first-child {
+  padding-left: 4px;
+}
+
+.summary-table-3col .num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* SnBig の neutral 色（with2bu が 0 のときに使う） */
+.big-result.neutral {
+  color: var(--neutral);
+}

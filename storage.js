@@ -70,8 +70,9 @@ export const STORAGE_KEYS = Object.freeze({
 /**
  * @typedef {Object} Game
  * @property {string} id
- * @property {string} teamId
- * @property {string} handicap         — "0.3" / "1" / "1.5" / "1半" / "1半3" 形式
+ * @property {string} teamId            — ハンデを出している側（強いチーム）
+ * @property {string | null} [opponentTeamId] — 対戦相手チーム。null/未設定 = 旧データ後方互換
+ * @property {string} handicap          — "0" (スクラッチ) / "0.3" / "1" / "1.5" / "1半" / "1半3" 形式
  * @property {GameResult | null} result — null = まだ未入力
  */
 

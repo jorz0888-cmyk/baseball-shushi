@@ -116,16 +116,24 @@ export function rateLabel(rate) {
 }
 
 /**
- * UI のプルダウン用ハンデ選択肢。v2 仕様書の網羅順:
- *   0.1〜0.9 → 1 → 1.1〜1.9 → 1半 → 1半1〜1半9
- *   → 2 → 2.1〜2.9 → 2半 → 2半1〜2半9
- *   …上限は 5（実運用で 5 を超えるハンデは稀）
+ * UI のプルダウン用ハンデ選択肢。
+ *   0 (スクラッチ / イーブン) → 0.1〜0.9
+ *     → 1 → 1.1〜1.9 → 1半 → 1半1〜1半9
+ *     → 2 → … → 9半9
+ *
+ * スクラッチ ("0"): ハンデなし。点差がそのまま勝敗:
+ *   出し側勝ち  →  丸勝ち  (+100%)
+ *   引分        →  勝負無し (±0%)
+ *   出し側負け  →  丸負け  (-100%)
+ *
+ * これは parseHandicap("0") = { base: 0, fraction: 0, isHan: false } と
+ * なり、calcHandicapResult のベース 0 特例 (f=0) で自然に上記挙動になる
+ * — 追加のロジック分岐は不要。
  */
 export const HANDICAP_OPTIONS = (() => {
-  const list = [];
-  // ベース 0 は端数のみ存在（0.0 = ハンデ無しは別扱いなので含めない）
+  const list = ["0"]; // スクラッチ / イーブン
   for (let f = 1; f <= 9; f++) list.push(`0.${f}`);
-  for (let base = 1; base <= 5; base++) {
+  for (let base = 1; base <= 9; base++) {
     list.push(`${base}`);
     for (let f = 1; f <= 9; f++) list.push(`${base}.${f}`);
     list.push(`${base}半`);

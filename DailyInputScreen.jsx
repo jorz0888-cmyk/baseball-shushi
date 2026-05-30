@@ -45,6 +45,7 @@ export default function DailyInputScreen({ back }) {
   );
 
   const [newGameTeamId, setNewGameTeamId] = useState("");
+  const [newOpponentTeamId, setNewOpponentTeamId] = useState("");
   const [newGameHandi, setNewGameHandi] = useState("1");
   /** @type {[null | any, Function]} */
   const [resultEditGame, setResultEditGame] = useState(null);
@@ -75,11 +76,15 @@ export default function DailyInputScreen({ back }) {
         {
           id: makeId("game"),
           teamId: newGameTeamId,
+          // 対戦相手は任意。未指定なら null。
+          opponentTeamId: newOpponentTeamId || null,
           handicap: newGameHandi,
           result: null,
         },
       ],
     }));
+    // 同チームを連続で出すケースは稀なので相手側はリセット
+    setNewOpponentTeamId("");
   }
 
   function updateGameHandicap(gameId, handicap) {
@@ -176,7 +181,8 @@ export default function DailyInputScreen({ back }) {
           <>
             <section className="card">
               <h2>試合追加 ({DAY_LABELS_JP[dayIdx]})</h2>
-              <div className="add-game-row">
+              <div className="add-game-grid">
+                <label className="add-game-label">出し側（強）</label>
                 <select
                   value={newGameTeamId}
                   onChange={(e) => setNewGameTeamId(e.target.value)}
@@ -187,17 +193,35 @@ export default function DailyInputScreen({ back }) {
                     </option>
                   ))}
                 </select>
+
+                <label className="add-game-label">対戦相手</label>
+                <select
+                  value={newOpponentTeamId}
+                  onChange={(e) => setNewOpponentTeamId(e.target.value)}
+                >
+                  <option value="">（指定なし）</option>
+                  {teams
+                    .filter((t) => t.id !== newGameTeamId)
+                    .map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name}
+                      </option>
+                    ))}
+                </select>
+
+                <label className="add-game-label">ハンデ</label>
                 <select
                   value={newGameHandi}
                   onChange={(e) => setNewGameHandi(e.target.value)}
                 >
                   {HANDICAP_OPTIONS.map((h) => (
                     <option key={h} value={h}>
-                      ハンデ {h}
+                      {h === "0" ? "0 (スクラッチ)" : h}
                     </option>
                   ))}
                 </select>
-                <button className="primary" onClick={addGame}>
+
+                <button className="primary add-game-btn" onClick={addGame}>
                   追加
                 </button>
               </div>
@@ -217,7 +241,22 @@ export default function DailyInputScreen({ back }) {
                           <th key={g.id} className="game-col-head">
                             <div className="game-team-row">
                               <span className="game-team-name">
-                                {teamName(g.teamId)}
+                                <span className="give-team">
+                                  {teamName(g.teamId)}
+                                </span>
+                                <span className="give-handi">
+                                  {g.handicap === "0"
+                                    ? ""
+                                    : ` -${g.handicap}`}
+                                </span>
+                                {g.opponentTeamId && (
+                                  <>
+                                    <span className="vs-sep"> vs </span>
+                                    <span className="opp-team">
+                                      {teamName(g.opponentTeamId)}
+                                    </span>
+                                  </>
+                                )}
                               </span>
                               <button
                                 className="game-delete"
@@ -236,7 +275,7 @@ export default function DailyInputScreen({ back }) {
                             >
                               {HANDICAP_OPTIONS.map((h) => (
                                 <option key={h} value={h}>
-                                  {h}
+                                  {h === "0" ? "0 (スクラッチ)" : h}
                                 </option>
                               ))}
                             </select>
@@ -303,6 +342,11 @@ export default function DailyInputScreen({ back }) {
       {resultEditGame && (
         <GameResultModal
           teamName={teamName(resultEditGame.teamId)}
+          opponentTeamName={
+            resultEditGame.opponentTeamId
+              ? teamName(resultEditGame.opponentTeamId)
+              : null
+          }
           handicap={resultEditGame.handicap}
           initial={resultEditGame.result}
           onSave={(r) => updateGameResult(resultEditGame.id, r)}
@@ -313,7 +357,11 @@ export default function DailyInputScreen({ back }) {
 
       {confirmDeleteGame && (
         <ConfirmDialog
-          message={`「${teamName(confirmDeleteGame.teamId)}」の試合を削除しますか？\n（この試合の全顧客の賭けも消えます）`}
+          message={`「${teamName(confirmDeleteGame.teamId)}${
+            confirmDeleteGame.opponentTeamId
+              ? ` vs ${teamName(confirmDeleteGame.opponentTeamId)}`
+              : ""
+          }」の試合を削除しますか？\n（この試合の全顧客の賭けも消えます）`}
           confirmLabel="削除する"
           onConfirm={() => deleteGame(confirmDeleteGame.id)}
           onCancel={() => setConfirmDeleteGame(null)}

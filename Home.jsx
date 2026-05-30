@@ -5,7 +5,8 @@ import {
   emptyWeek,
 } from "./storage.js";
 import { weekIdFor } from "./week.js";
-import { aggregateWeek, fmtPoints } from "./aggregate.js";
+import { fmtPoints } from "./aggregate.js";
+import { settleAll } from "./settle.js";
 import { useInstallPrompt } from "./useInstallPrompt.js";
 
 /**
@@ -20,8 +21,9 @@ export default function Home({ goTo }) {
   const { canInstall, install } = useInstallPrompt();
 
   const weekData = weeks[todayWid] ?? emptyWeek();
-  const weeklyTotals = useMemo(
-    () => aggregateWeek(weekData, customers),
+  // 週間収支は settle 経由で取得 → ＋合計 / −合計 / 週合計 を一覧
+  const settled = useMemo(
+    () => settleAll(weekData, customers),
     [weekData, customers],
   );
 
@@ -40,23 +42,41 @@ export default function Home({ goTo }) {
               顧客が未登録です。下のボタンから登録してください。
             </p>
           ) : (
-            <table className="summary-table">
+            <table className="summary-table summary-table-3col">
               <thead>
                 <tr>
                   <th>顧客名</th>
-                  <th className="num">週間収支</th>
+                  <th className="num">＋合計</th>
+                  <th className="num">−合計</th>
+                  <th className="num">週合計</th>
                 </tr>
               </thead>
               <tbody>
-                {customers.map((c) => {
-                  const v = weeklyTotals[c.id] ?? 0;
-                  const cls = v > 0 ? "plus" : v < 0 ? "minus" : "neutral";
-                  const sign = v > 0 ? "+" : v < 0 ? "−" : "±";
+                {settled.map(({ customer, settlement }) => {
+                  const { plusSum, minusSum, weekTotal } = settlement;
+                  const totalCls =
+                    weekTotal > 0
+                      ? "plus"
+                      : weekTotal < 0
+                        ? "minus"
+                        : "neutral";
+                  const totalSign =
+                    weekTotal > 0 ? "+" : weekTotal < 0 ? "−" : "±";
                   return (
-                    <tr key={c.id}>
-                      <td>{c.name}</td>
-                      <td className={`num ${cls}`}>
-                        {v === 0 ? "±0" : `${sign}${fmtPoints(Math.abs(v))}`}
+                    <tr key={customer.id}>
+                      <td>{customer.name}</td>
+                      <td className="num plus">
+                        {plusSum > 0 ? `+${fmtPoints(plusSum)}` : "0"}
+                      </td>
+                      <td className="num minus">
+                        {minusSum < 0
+                          ? `−${fmtPoints(Math.abs(minusSum))}`
+                          : "0"}
+                      </td>
+                      <td className={`num ${totalCls}`}>
+                        {weekTotal === 0
+                          ? "±0"
+                          : `${totalSign}${fmtPoints(Math.abs(weekTotal))}`}
                       </td>
                     </tr>
                   );

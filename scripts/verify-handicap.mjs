@@ -23,6 +23,26 @@ function expect(actual, expected, label) {
   );
 }
 
+// ---------- スクラッチ (ハンデ 0 / イーブン) ---------------------------------
+console.log("\n■ スクラッチ (ハンデ 0)");
+expect(calcHandicapResult("0", -1), -100, "0 出し側負け → 丸負け");
+expect(calcHandicapResult("0", 0), 0, "0 引分 → 勝負無し");
+expect(calcHandicapResult("0", 1), 100, "0 1点差勝ち → 丸勝ち");
+expect(calcHandicapResult("0", 3), 100, "0 3点差勝ち → 丸勝ち");
+expect(calcHandicapResult("0", 5), 100, "0 5点差勝ち → 丸勝ち");
+
+// ---------- ベース9 / 半値9 (拡張範囲のサンプリング) -------------------------
+console.log("\n■ 拡張範囲: ベース9 / 半値9 sampling");
+expect(calcHandicapResult("9", 8), -100, "9 8点差勝 → 丸負け");
+expect(calcHandicapResult("9", 9), 0, "9 9点差勝 → 勝負無し");
+expect(calcHandicapResult("9", 10), 100, "9 10点差勝 → 丸勝ち");
+expect(calcHandicapResult("9.3", 9), -30, "9.3 9点差勝 → 3分負け");
+expect(calcHandicapResult("9半", 9), -100, "9半 9点差勝 → 丸負け");
+expect(calcHandicapResult("9半", 10), 100, "9半 10点差勝 → 丸勝ち");
+expect(calcHandicapResult("9半5", 10), 50, "9半5 10点差勝 → 5分勝ち");
+expect(calcHandicapResult("9半9", 10), 10, "9半9 10点差勝 → 1分勝ち");
+expect(calcHandicapResult("9半9", 11), 100, "9半9 11点差勝 → 丸勝ち");
+
 // ---------- v2 spec table: ベース0 (0.1〜0.9) ---------------------------------
 console.log("\n■ ベース0 (0.1 〜 0.9)");
 const base0 = [
