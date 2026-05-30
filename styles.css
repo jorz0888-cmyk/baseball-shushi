@@ -153,3 +153,250 @@ textarea:focus {
 .minus { color: var(--minus); }
 .orange { color: var(--orange); }
 .neutral { color: var(--neutral); }
+
+/* ─── Stage 2: Home / Customers / Teams ──────────────────────────────── */
+
+/* Screen header with back button */
+.screen-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 4px 16px;
+}
+
+.screen-header h1 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: 0.02em;
+}
+
+.screen-header .meta {
+  margin: 0;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--ink-subtle);
+  text-transform: uppercase;
+}
+
+.back {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 0 12px;
+  font-size: 13px;
+  min-height: 40px;
+}
+
+.back:hover {
+  border-color: var(--line-strong);
+}
+
+/* Home nav tiles */
+.nav-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.nav-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--surface-elev);
+  border: 1px solid var(--line);
+  padding: 16px 12px;
+  min-height: 88px;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.nav-tile:hover {
+  border-color: var(--line-strong);
+  background: var(--surface);
+}
+
+.nav-icon {
+  font-size: 22px;
+}
+
+.nav-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.nav-count {
+  font-size: 11px;
+  color: var(--ink-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Summary table on Home */
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.summary-table th,
+.summary-table td {
+  text-align: left;
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--line);
+}
+
+.summary-table th {
+  color: var(--ink-muted);
+  font-weight: normal;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+.summary-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.summary-table td.num,
+.summary-table th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Empty / hint / error text inside cards */
+.empty {
+  margin: 0;
+  color: var(--ink-subtle);
+  font-size: 13px;
+}
+
+.error {
+  margin: 8px 0 0;
+  color: var(--minus);
+  font-size: 12px;
+}
+
+/* Add/edit input row */
+.row-input {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.row-input input {
+  width: 100%;
+}
+
+/* Entry list (customers / teams) */
+.entry-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.entry-list li {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: var(--surface-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 4px 4px 4px 12px;
+  min-height: 48px;
+}
+
+.entry-list li input[type="text"] {
+  flex: 1;
+  min-height: 40px;
+}
+
+.entry-list li button {
+  min-height: 40px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.entry-name {
+  flex: 1;
+  font-size: 15px;
+}
+
+/* Button variants */
+.primary {
+  background: var(--plus);
+  color: #0a0e17;
+  font-weight: 600;
+}
+
+.primary:hover {
+  filter: brightness(1.08);
+}
+
+.primary:disabled {
+  background: var(--line-strong);
+  color: var(--ink-subtle);
+  cursor: not-allowed;
+  filter: none;
+}
+
+.danger {
+  background: var(--minus);
+  color: #0a0e17;
+  font-weight: 600;
+}
+
+.danger:hover {
+  filter: brightness(1.08);
+}
+
+.danger-outline {
+  background: transparent;
+  color: var(--minus);
+  border: 1px solid var(--minus);
+}
+
+.danger-outline:hover {
+  background: rgba(240, 96, 93, 0.1);
+}
+
+/* Modal confirm dialog */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 100;
+  /* iOS safe-area */
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+.modal {
+  background: var(--surface-elev);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: 360px;
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.modal-message {
+  margin: 0 0 16px;
+  font-size: 15px;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.modal-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}

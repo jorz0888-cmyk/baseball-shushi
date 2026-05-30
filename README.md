@@ -33,7 +33,7 @@ npm run verify:handicap   # ハンデ換算ロジックを v2 仕様書の表で
 
 ## 進捗
 - [x] Stage 1: scaffold + storage + handicap + week
-- [ ] Stage 2: 顧客・チーム管理画面
+- [x] Stage 2: 顧客・チーム管理画面
 - [ ] Stage 3: 日別入力グリッド
 - [ ] Stage 4: 週間精算 + B収支式
 - [ ] Stage 5: スマホ最適化 / PWA 仕上げ
