@@ -1,0 +1,19 @@
+{
+  "name": "野球収支計算機",
+  "short_name": "野球収支",
+  "description": "プロ野球の試合結果とハンデで顧客ごとの収支を計算",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0e17",
+  "theme_color": "#0a0e17",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
