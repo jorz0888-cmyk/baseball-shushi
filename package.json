@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "verify:handicap": "node scripts/verify-handicap.mjs",
     "verify:aggregate": "node scripts/verify-aggregate.mjs",
-    "verify": "node scripts/verify-handicap.mjs && node scripts/verify-aggregate.mjs"
+    "verify:settle": "node scripts/verify-settle.mjs",
+    "verify": "node scripts/verify-handicap.mjs && node scripts/verify-aggregate.mjs && node scripts/verify-settle.mjs"
   },
   "dependencies": {
     "react": "^19.2.4",

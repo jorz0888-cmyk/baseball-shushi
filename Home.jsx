@@ -75,10 +75,10 @@ export default function Home({ goTo }) {
               <span className="nav-label">日別入力</span>
               <span className="nav-count">月〜日 グリッド</span>
             </button>
-            <button className="nav-tile disabled" disabled>
+            <button className="nav-tile" onClick={() => goTo("settlement")}>
               <span className="nav-icon">📊</span>
               <span className="nav-label">週間精算</span>
-              <span className="nav-count">Stage 4 で実装</span>
+              <span className="nav-count">B収支式</span>
             </button>
           </div>
         </section>
@@ -99,7 +99,7 @@ export default function Home({ goTo }) {
           </div>
         </section>
 
-        <p className="hint">Stage 3 完了 — 日別入力グリッド + ハンデ計算</p>
+        <p className="hint">Stage 4 完了 — 週間精算 + B収支式</p>
       </main>
     </div>
   );

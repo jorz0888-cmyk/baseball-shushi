@@ -746,3 +746,192 @@ textarea:focus {
   font-size: 16px;
   font-weight: 600;
 }
+
+/* ─── Stage 4: Weekly Settlement ─────────────────────────────────────── */
+
+/* Week nav (◀ W23 ▶) */
+.week-nav {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 0 4px 12px;
+}
+
+.week-nav button {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 0 12px;
+  font-size: 13px;
+  min-height: 40px;
+}
+
+.week-label {
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.this-week-link {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  min-height: auto;
+  color: var(--plus);
+  font-size: 11px;
+  font-family: inherit;
+  letter-spacing: 0.04em;
+  text-decoration: underline;
+}
+
+/* Formula recap card */
+.formula-card {
+  background: var(--surface);
+}
+
+.formula-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formula-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  background: var(--surface-elev);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+}
+
+.formula-label {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.formula-detail {
+  font-size: 12px;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Customer settlement card */
+.customer-card {
+  padding-top: 12px;
+}
+
+.customer-card-name {
+  margin: 0 0 12px;
+  font-size: 16px;
+  color: var(--ink);
+  letter-spacing: 0;
+}
+
+.day-totals-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-bottom: 12px;
+  font-size: 12px;
+}
+
+.day-totals-table th {
+  background: var(--surface-elev);
+  border: 1px solid var(--line);
+  padding: 4px 0;
+  font-weight: 600;
+  color: var(--ink-muted);
+  text-align: center;
+  width: calc(100% / 7);
+}
+
+.day-totals-table td {
+  border: 1px solid var(--line);
+  border-top: 0;
+  padding: 6px 4px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  min-height: 36px;
+}
+
+.settlement-rows {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.settlement-rows .row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 12px;
+  padding: 4px 2px;
+}
+
+.settlement-rows .row dt {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.settlement-rows .row dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.settlement-rows .row-strong dt {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.settlement-rows .row-strong dd {
+  font-size: 16px;
+}
+
+.settlement-rows .row-big {
+  padding: 8px 2px;
+}
+
+.settlement-rows .row-big dt {
+  font-size: 14px;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.settlement-divider {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 4px 0;
+}
+
+.big-result {
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.big-result.plus {
+  color: var(--plus);
+}
+
+.big-result.minus {
+  color: var(--minus);
+}
+
+.big-result.orange {
+  color: var(--orange);
+}
