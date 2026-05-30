@@ -22,6 +22,7 @@
 
 import { aggregateDay } from "./aggregate.js";
 import { DAY_KEYS } from "./week.js";
+import { SETTLE_RATES, apply2bu, applyNo2bu } from "./rates.js";
 
 /** 前半 / 後半の曜日割り（v2 仕様書ステップ 4）*/
 const FIRST_HALF_DAYS = Object.freeze(["monday", "tuesday", "wednesday"]);
@@ -32,11 +33,8 @@ const SECOND_HALF_DAYS = Object.freeze([
   "sunday",
 ]);
 
-/** B収支 加重率（v2 仕様書ステップ 5）。差し替えは1箇所で完結。*/
-export const SETTLE_RATES = Object.freeze({
-  with2bu: Object.freeze({ plus: 0.92, minus: 0.98 }),
-  without2bu: Object.freeze({ plus: 0.9, minus: 1.0 }),
-});
+// SETTLE_RATES は rates.js から re-export（既存呼出側のため）
+export { SETTLE_RATES };
 
 /**
  * @typedef {Object} CustomerSettlement
@@ -86,12 +84,8 @@ export function settleCustomer(weekData, customer) {
     else if (v < 0) minusSum += v;
   }
 
-  const with2bu =
-    plusSum * SETTLE_RATES.with2bu.plus +
-    minusSum * SETTLE_RATES.with2bu.minus;
-  const without2bu =
-    plusSum * SETTLE_RATES.without2bu.plus +
-    minusSum * SETTLE_RATES.without2bu.minus;
+  const with2bu = apply2bu(plusSum, minusSum);
+  const without2bu = applyNo2bu(plusSum, minusSum);
 
   return {
     dailyTotals,

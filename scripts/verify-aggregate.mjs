@@ -233,6 +233,54 @@ console.log("\n■ aggregateDay: 2 customers × 3 games, mixed");
 
   // grand total
   expectApprox(agg.grandTotal, -35 + -10, "grand total = -45");
+
+  // rowTotals2bu — 行ごと + / − を分けて 2部有り計算
+  // c1: +15 と -50 → 15*0.92 + -50*0.98 = 13.8 - 49 = -35.2
+  expectApprox(
+    agg.rowTotals2bu.c1,
+    15 * 0.92 + -50 * 0.98,
+    "c1 rowTotals2bu = +15×0.92 + -50×0.98 = -35.2",
+  );
+  // c2: +50 と -60 → 50*0.92 + -60*0.98 = 46 - 58.8 = -12.8
+  expectApprox(
+    agg.rowTotals2bu.c2,
+    50 * 0.92 + -60 * 0.98,
+    "c2 rowTotals2bu = +50×0.92 + -60×0.98 = -12.8",
+  );
+}
+
+// ─── aggregateDay rowTotals2bu: 全て同符号 ──────────────────────────────
+console.log("\n■ aggregateDay rowTotals2bu: 全プラス / 全マイナス");
+{
+  const customers = [{ id: "c1", name: "あ" }];
+  // 2 試合とも勝ち（全プラス）→ 単純合計 × 0.92
+  const day = {
+    games: [
+      {
+        id: "g1",
+        teamId: "t1",
+        handicap: "0.3",
+        result: { won: true, draw: false, scoreDiff: 1 },
+      }, // +70%
+      {
+        id: "g2",
+        teamId: "t2",
+        handicap: "0.5",
+        result: { won: true, draw: false, scoreDiff: 1 },
+      }, // +50%
+    ],
+    bets: [
+      { customerId: "c1", gameId: "g1", points: 100, side: "give" }, // +70
+      { customerId: "c1", gameId: "g2", points: 100, side: "give" }, // +50
+    ],
+  };
+  const agg = aggregateDay(day, customers);
+  expectApprox(agg.rowTotals.c1, 120, "raw rowTotal = +120");
+  expectApprox(
+    agg.rowTotals2bu.c1,
+    120 * 0.92,
+    "rowTotals2bu = 120 × 0.92 = +110.4",
+  );
 }
 
 // ─── aggregateWeek ───────────────────────────────────────────────────────

@@ -29,12 +29,10 @@ export default function DailyInputScreen({ back }) {
   const [customers] = useLocalStorage(STORAGE_KEYS.customers, []);
   const [teams] = useLocalStorage(STORAGE_KEYS.teams, []);
 
-  // Default-select today's weekday.
-  const [selectedDay, setSelectedDay] = useState(() => {
-    const todayJs = new Date().getDay(); // 0=Sun..6=Sat
-    const monStart = (todayJs + 6) % 7; // 0=Mon..6=Sun
-    return DAY_KEYS[monStart];
-  });
+  // 火曜日 デフォルト固定。月曜はほぼ試合が無いため、画面に来たら
+  // すぐ入力できる曜日（火）から始める。本日 = 火以外の曜日のときは
+  // ユーザがタブから移動する。
+  const [selectedDay, setSelectedDay] = useState("tuesday");
 
   const week = weeks[wid] ?? emptyWeek();
   const day = week[selectedDay] ?? emptyDay();
@@ -289,7 +287,7 @@ export default function DailyInputScreen({ back }) {
                             </button>
                           </th>
                         ))}
-                        <th className="sticky-right corner">行計</th>
+                        <th className="sticky-right corner">行計(2部有)</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -321,7 +319,7 @@ export default function DailyInputScreen({ back }) {
                             );
                           })}
                           <td className="sticky-right num row-total">
-                            <ResultPoint value={agg.rowTotals[c.id]} />
+                            <ResultPoint value={agg.rowTotals2bu[c.id]} />
                           </td>
                         </tr>
                       ))}

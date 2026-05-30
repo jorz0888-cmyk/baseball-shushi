@@ -16,6 +16,7 @@ import {
   calcHandicapResult,
   pointsFromRate,
 } from "./handicap.js";
+import { apply2bu } from "./rates.js";
 
 /**
  * 試合結果から「出し側視点の得失点差」を導出。
@@ -72,6 +73,8 @@ export function aggregateDay(dayData, customers) {
   /** @type {Record<string, number>} */
   const rowTotals = {};
   /** @type {Record<string, number>} */
+  const rowTotals2bu = {};
+  /** @type {Record<string, number>} */
   const colTotals = {};
   let grandTotal = 0;
 
@@ -81,19 +84,25 @@ export function aggregateDay(dayData, customers) {
   for (const c of customers) {
     cells[c.id] = {};
     rowTotals[c.id] = 0;
+    // 行ごとに + / − を分けて 2部有り計算に使う
+    let rowPlus = 0;
+    let rowMinus = 0;
     for (const g of games) {
       const bet = betIndex.get(`${c.id}::${g.id}`);
       const value = bet ? betCellValue(bet, g) : null;
       cells[c.id][g.id] = value;
       if (value != null) {
         rowTotals[c.id] += value;
+        if (value > 0) rowPlus += value;
+        else if (value < 0) rowMinus += value;
         colTotals[g.id] += value;
         grandTotal += value;
       }
     }
+    rowTotals2bu[c.id] = apply2bu(rowPlus, rowMinus);
   }
 
-  return { cells, rowTotals, colTotals, grandTotal };
+  return { cells, rowTotals, rowTotals2bu, colTotals, grandTotal };
 }
 
 /**
