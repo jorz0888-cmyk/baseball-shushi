@@ -26,6 +26,24 @@ export default function Home({ goTo }) {
     () => settleAll(weekData, customers),
     [weekData, customers],
   );
+  // お店視点: 全顧客の合算を符号反転（顧客の勝ち = 店の負け）
+  const shopRow = useMemo(() => {
+    let plus = 0;
+    let minus = 0;
+    let total = 0;
+    for (const { settlement } of settled) {
+      plus += settlement.plusSum;
+      minus += settlement.minusSum;
+      total += settlement.weekTotal;
+    }
+    return {
+      // 顧客の負け (minusSum は負値) → お店のプラス
+      shopPlus: -minus,
+      // 顧客の勝ち (plusSum は正値) → お店のマイナス
+      shopMinus: -plus,
+      shopTotal: -total,
+    };
+  }, [settled]);
 
   return (
     <div className="app">
@@ -82,10 +100,41 @@ export default function Home({ goTo }) {
                   );
                 })}
               </tbody>
+              <tfoot>
+                <tr className="shop-row">
+                  <td>お店</td>
+                  <td className="num plus">
+                    {shopRow.shopPlus > 0
+                      ? `+${fmtPoints(shopRow.shopPlus)}`
+                      : "0"}
+                  </td>
+                  <td className="num minus">
+                    {shopRow.shopMinus < 0
+                      ? `−${fmtPoints(Math.abs(shopRow.shopMinus))}`
+                      : "0"}
+                  </td>
+                  <td
+                    className={`num ${
+                      shopRow.shopTotal > 0
+                        ? "plus"
+                        : shopRow.shopTotal < 0
+                          ? "minus"
+                          : "neutral"
+                    }`}
+                  >
+                    {shopRow.shopTotal === 0
+                      ? "±0"
+                      : `${shopRow.shopTotal > 0 ? "+" : "−"}${fmtPoints(
+                          Math.abs(shopRow.shopTotal),
+                        )}`}
+                  </td>
+                </tr>
+              </tfoot>
             </table>
           )}
           <p className="hint" style={{ textAlign: "left", margin: "12px 0 0" }}>
-            ※ 試合結果が未入力の試合は週間合計に含まれません
+            ※ 試合結果が未入力の試合は週間合計に含まれません<br />
+            ※ お店行は顧客全員の合算を反転（顧客の勝ち = 店の負け）
           </p>
         </section>
 

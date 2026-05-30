@@ -40,6 +40,22 @@ export default function WeeklySettlementScreen({ back }) {
     () => settleAll(weekData, customers),
     [weekData, customers],
   );
+  // お店視点: 全顧客の合算を反転（顧客の勝ち = 店の負け）
+  const shopSummary = useMemo(() => {
+    let weekTotal = 0;
+    let with2bu = 0;
+    let without2bu = 0;
+    for (const { settlement } of settled) {
+      weekTotal += settlement.weekTotal;
+      with2bu += settlement.with2bu;
+      without2bu += settlement.without2bu;
+    }
+    return {
+      weekTotal: -weekTotal,
+      with2bu: -with2bu,
+      without2bu: -without2bu,
+    };
+  }, [settled]);
 
   return (
     <div className="app">
@@ -95,6 +111,36 @@ export default function WeeklySettlementScreen({ back }) {
               <p className="hint" style={{ textAlign: "left", margin: "8px 0 0" }}>
                 ※ プラス / マイナスは <strong>日単位</strong>（月〜日 各 row total の符号）で振り分け
               </p>
+            </section>
+
+            <section className="card shop-summary-card">
+              <h2>🏪 お店の収支（週間）</h2>
+              <p
+                className="hint"
+                style={{ margin: "0 0 12px", textAlign: "left" }}
+              >
+                顧客全員の合算を反転 ── 顧客の勝ちが店の負け、顧客の負けが店の勝ち
+              </p>
+              <dl className="settlement-rows">
+                <div className="row row-strong">
+                  <dt>週合計</dt>
+                  <dd className="num">
+                    <Sn value={shopSummary.weekTotal} strong />
+                  </dd>
+                </div>
+                <div className="row row-big">
+                  <dt>2部有り合計</dt>
+                  <dd className="num">
+                    <SnBig value={shopSummary.with2bu} />
+                  </dd>
+                </div>
+                <div className="row row-big">
+                  <dt>2部無し合計</dt>
+                  <dd className="num">
+                    <SnBig value={shopSummary.without2bu} fixedColor="orange" />
+                  </dd>
+                </div>
+              </dl>
             </section>
 
             {settled.map(({ customer, settlement }) => (
