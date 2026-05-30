@@ -400,3 +400,349 @@ textarea:focus {
   grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
+
+/* ─── Stage 3: Daily Input grid ──────────────────────────────────────── */
+
+/* Disabled nav tile (Stage 4 placeholder) */
+.nav-tile.disabled,
+.nav-tile:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.nav-tile.disabled:hover {
+  border-color: var(--line);
+  background: var(--surface-elev);
+}
+
+/* Weekday tabs */
+.day-tabs {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin: 0 4px 12px;
+}
+
+.day-tab {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 0;
+  min-height: 44px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+.day-tab.active {
+  background: var(--plus);
+  color: #0a0e17;
+  border-color: var(--plus);
+}
+
+/* Add-game form */
+.add-game-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+}
+
+.add-game-row select {
+  font-size: 14px;
+}
+
+/* Grid card needs to allow horizontal scroll inside */
+.grid-card {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.grid-card h2 {
+  padding: 0 16px;
+}
+
+.grid-card > .empty {
+  padding: 0 16px;
+}
+
+.grid-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* The grid table itself */
+.bet-grid {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  width: max-content;
+  min-width: 100%;
+}
+
+.bet-grid th,
+.bet-grid td {
+  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  padding: 6px;
+  background: var(--surface);
+  vertical-align: top;
+}
+
+.bet-grid thead th {
+  background: var(--surface-elev);
+  font-weight: 600;
+  font-size: 12px;
+  text-align: center;
+}
+
+.bet-grid tbody th {
+  background: var(--surface-elev);
+  font-weight: 600;
+  text-align: left;
+  padding-left: 12px;
+}
+
+/* Sticky columns */
+.sticky-left {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+.sticky-right {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  background: var(--surface-elev) !important;
+}
+
+/* Corner cell needs to win the z-index race over both axes */
+.bet-grid thead th.sticky-left.corner {
+  z-index: 3;
+}
+
+.bet-grid thead th.sticky-right.corner {
+  z-index: 3;
+}
+
+/* Game column header */
+.game-col-head {
+  min-width: 120px;
+}
+
+.game-team-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.game-team-name {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.game-delete {
+  background: transparent;
+  color: var(--ink-subtle);
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 6px;
+  min-height: 24px;
+  border-radius: 4px;
+}
+
+.game-delete:hover {
+  background: rgba(240, 96, 93, 0.15);
+  color: var(--minus);
+}
+
+.handi-select {
+  width: 100%;
+  min-height: 32px;
+  padding: 4px 6px;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.result-btn {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  font-size: 12px;
+  padding: 0 6px;
+  min-height: 32px;
+  color: var(--ink-muted);
+}
+
+.result-btn.set {
+  background: var(--surface-elev);
+  border-color: var(--plus);
+  color: var(--plus);
+  font-weight: 600;
+}
+
+/* Customer name in rows */
+.customer-name {
+  min-width: 70px;
+  max-width: 100px;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Bet cell layout (the editable cell) */
+.bet-cell-td {
+  padding: 4px;
+  min-width: 120px;
+}
+
+.bet-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bet-cell input[type="number"] {
+  width: 100%;
+  min-height: 32px;
+  padding: 4px 6px;
+  font-size: 14px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  /* Hide the spinner on number inputs in Webkit */
+  -moz-appearance: textfield;
+}
+
+.bet-cell input[type="number"]::-webkit-outer-spin-button,
+.bet-cell input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.side-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+}
+
+.side-btn {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: 11px;
+  padding: 0;
+  min-height: 24px;
+  color: var(--ink-muted);
+}
+
+.side-btn.active {
+  background: var(--plus);
+  color: #0a0e17;
+  border-color: var(--plus);
+  font-weight: 700;
+}
+
+.bet-result {
+  text-align: center;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  min-height: 14px;
+}
+
+/* Row totals column */
+.row-total {
+  background: var(--surface-elev) !important;
+  font-weight: 600;
+  font-size: 13px;
+  text-align: right;
+  padding-right: 10px;
+  min-width: 70px;
+}
+
+/* Bottom totals row */
+.totals-row td,
+.totals-row th {
+  background: var(--surface-elev);
+  font-weight: 600;
+  border-top: 2px solid var(--line-strong);
+}
+
+.col-total,
+.grand-total {
+  text-align: right;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  padding-right: 10px;
+}
+
+.grand-total {
+  background: var(--bg) !important;
+}
+
+/* +/− color variants get a "strong" modifier for grand totals */
+.plus.strong,
+.minus.strong {
+  font-size: 16px;
+}
+
+.plus.small,
+.minus.small,
+.neutral.small {
+  font-size: 11px;
+}
+
+/* GameResultModal outcome buttons */
+.outcome-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.outcome {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+
+.outcome.active.win {
+  background: var(--plus);
+  color: #0a0e17;
+  border-color: var(--plus);
+}
+
+.outcome.active.lose {
+  background: var(--minus);
+  color: #0a0e17;
+  border-color: var(--minus);
+}
+
+.outcome.active.draw {
+  background: var(--neutral);
+  color: var(--ink);
+  border-color: var(--neutral);
+}
+
+.score-diff {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.score-diff label {
+  font-size: 14px;
+  color: var(--ink-muted);
+  flex-shrink: 0;
+}
+
+.score-diff input {
+  flex: 1;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-size: 16px;
+  font-weight: 600;
+}

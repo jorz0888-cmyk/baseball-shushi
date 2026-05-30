@@ -2,10 +2,11 @@ import { useState } from "react";
 import Home from "./Home.jsx";
 import CustomersScreen from "./CustomersScreen.jsx";
 import TeamsScreen from "./TeamsScreen.jsx";
+import DailyInputScreen from "./DailyInputScreen.jsx";
 
 /**
  * Top-level screen router. We use plain useState rather than react-router
- * because the app is single-window and three screens deep — a router
+ * because the app is single-window and ≤4 screens deep — a router
  * would just add a dep. Screens receive a `back` callback that returns
  * them to home; Home receives `goTo` to navigate forward.
  */
@@ -17,6 +18,9 @@ export default function App() {
   }
   if (screen === "teams") {
     return <TeamsScreen back={() => setScreen("home")} />;
+  }
+  if (screen === "daily") {
+    return <DailyInputScreen back={() => setScreen("home")} />;
   }
   return <Home goTo={setScreen} />;
 }

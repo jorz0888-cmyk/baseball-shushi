@@ -114,3 +114,22 @@ export function rateLabel(rate) {
   if (rate > 0) return `${rate / 10}分勝ち`;
   return `${-rate / 10}分負け`;
 }
+
+/**
+ * UI のプルダウン用ハンデ選択肢。v2 仕様書の網羅順:
+ *   0.1〜0.9 → 1 → 1.1〜1.9 → 1半 → 1半1〜1半9
+ *   → 2 → 2.1〜2.9 → 2半 → 2半1〜2半9
+ *   …上限は 5（実運用で 5 を超えるハンデは稀）
+ */
+export const HANDICAP_OPTIONS = (() => {
+  const list = [];
+  // ベース 0 は端数のみ存在（0.0 = ハンデ無しは別扱いなので含めない）
+  for (let f = 1; f <= 9; f++) list.push(`0.${f}`);
+  for (let base = 1; base <= 5; base++) {
+    list.push(`${base}`);
+    for (let f = 1; f <= 9; f++) list.push(`${base}.${f}`);
+    list.push(`${base}半`);
+    for (let f = 1; f <= 9; f++) list.push(`${base}半${f}`);
+  }
+  return Object.freeze(list);
+})();
