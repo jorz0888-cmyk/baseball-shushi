@@ -16,7 +16,7 @@ import {
   calcHandicapResult,
   pointsFromRate,
 } from "./handicap.js";
-import { apply2bu } from "./rates.js";
+import { apply2bu, applyNo2bu } from "./rates.js";
 
 /**
  * 試合結果から「出し側視点の得失点差」を導出。
@@ -75,6 +75,8 @@ export function aggregateDay(dayData, customers) {
   /** @type {Record<string, number>} */
   const rowTotals2bu = {};
   /** @type {Record<string, number>} */
+  const rowTotalsNo2bu = {};
+  /** @type {Record<string, number>} */
   const colTotals = {};
   let grandTotal = 0;
 
@@ -84,7 +86,7 @@ export function aggregateDay(dayData, customers) {
   for (const c of customers) {
     cells[c.id] = {};
     rowTotals[c.id] = 0;
-    // 行ごとに + / − を分けて 2部有り計算に使う
+    // 行ごとに + / − を分けて 2部有り / 2部無し計算に使う
     let rowPlus = 0;
     let rowMinus = 0;
     for (const g of games) {
@@ -100,9 +102,10 @@ export function aggregateDay(dayData, customers) {
       }
     }
     rowTotals2bu[c.id] = apply2bu(rowPlus, rowMinus);
+    rowTotalsNo2bu[c.id] = applyNo2bu(rowPlus, rowMinus);
   }
 
-  return { cells, rowTotals, rowTotals2bu, colTotals, grandTotal };
+  return { cells, rowTotals, rowTotals2bu, rowTotalsNo2bu, colTotals, grandTotal };
 }
 
 /**
@@ -131,15 +134,17 @@ export function aggregateWeek(weekData, customers) {
 }
 
 /**
- * ポイント値の表示文字列。整数なら小数点なし、小数なら1桁、0 は "0"。
+ * ポイント値の表示文字列。整数なら小数点なし、小数なら2桁、0 は "0"。
  * 符号は呼び出し側で付ける（色クラスとセットで使うため）。
+ *
+ * 100 円単位の精度（2部計算で 0.02 系の差分が出るため小数 2 桁が要る）。
  *
  * @param {number} v
  * @returns {string}
  */
 export function fmtPoints(v) {
   if (v === 0) return "0";
-  const rounded = Math.round(v * 10) / 10;
+  const rounded = Math.round(v * 100) / 100;
   if (Number.isInteger(rounded)) return String(rounded);
-  return rounded.toFixed(1);
+  return rounded.toFixed(2);
 }

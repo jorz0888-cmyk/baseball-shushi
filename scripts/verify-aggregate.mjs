@@ -247,6 +247,20 @@ console.log("\n■ aggregateDay: 2 customers × 3 games, mixed");
     50 * 0.92 + -60 * 0.98,
     "c2 rowTotals2bu = +50×0.92 + -60×0.98 = -12.8",
   );
+
+  // rowTotalsNo2bu — 同じ + / − を 2部無しで計算
+  // c1: +15 と -50 → 15*0.90 + -50*1.00 = 13.5 - 50 = -36.5
+  expectApprox(
+    agg.rowTotalsNo2bu.c1,
+    15 * 0.9 + -50 * 1.0,
+    "c1 rowTotalsNo2bu = +15×0.90 + -50×1.00 = -36.5",
+  );
+  // c2: +50 と -60 → 50*0.90 + -60*1.00 = 45 - 60 = -15
+  expectApprox(
+    agg.rowTotalsNo2bu.c2,
+    50 * 0.9 + -60 * 1.0,
+    "c2 rowTotalsNo2bu = +50×0.90 + -60×1.00 = -15",
+  );
 }
 
 // ─── aggregateDay rowTotals2bu: 全て同符号 ──────────────────────────────
@@ -280,6 +294,11 @@ console.log("\n■ aggregateDay rowTotals2bu: 全プラス / 全マイナス");
     agg.rowTotals2bu.c1,
     120 * 0.92,
     "rowTotals2bu = 120 × 0.92 = +110.4",
+  );
+  expectApprox(
+    agg.rowTotalsNo2bu.c1,
+    120 * 0.9,
+    "rowTotalsNo2bu = 120 × 0.90 = +108",
   );
 }
 
@@ -334,14 +353,17 @@ console.log("\n■ aggregateWeek");
   expectApprox(totals.c2, 35, "c2 week total = +35");
 }
 
-// ─── fmtPoints ───────────────────────────────────────────────────────────
-console.log("\n■ fmtPoints");
+// ─── fmtPoints (100円単位、小数2桁) ──────────────────────────────────────
+console.log("\n■ fmtPoints (2 decimal — 100円単位)");
 expect(fmtPoints(0), "0", "0 → '0'");
-expect(fmtPoints(70), "70", "70 → '70'");
-expect(fmtPoints(-50), "-50", "-50 → '-50'");
-expect(fmtPoints(7.5), "7.5", "7.5 → '7.5'");
-expect(fmtPoints(7.0), "7", "7.0 → '7' (trailing zero dropped)");
-expect(fmtPoints(0.3), "0.3", "0.3 → '0.3'");
+expect(fmtPoints(70), "70", "70 → '70' (整数)");
+expect(fmtPoints(-50), "-50", "-50 → '-50' (整数)");
+expect(fmtPoints(7.0), "7", "7.0 → '7' (整数化されたら整数表記)");
+expect(fmtPoints(7.5), "7.50", "7.5 → '7.50' (2桁ゼロパディング)");
+expect(fmtPoints(0.3), "0.30", "0.3 → '0.30'");
+expect(fmtPoints(27.34), "27.34", "27.34 → '27.34' (100円単位)");
+expect(fmtPoints(33.6), "33.60", "33.6 → '33.60'");
+expect(fmtPoints(-37), "-37", "-37 → '-37' (整数)");
 
 console.log(
   `\n${failed === 0 ? "✓ ALL PASS" : `✗ ${failed} FAIL`}  (${passed}/${passed + failed})`,

@@ -287,7 +287,7 @@ export default function DailyInputScreen({ back }) {
                             </button>
                           </th>
                         ))}
-                        <th className="sticky-right corner">行計(2部有)</th>
+                        <th className="sticky-right corner">行計(2部無)</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -319,7 +319,7 @@ export default function DailyInputScreen({ back }) {
                             );
                           })}
                           <td className="sticky-right num row-total">
-                            <ResultPoint value={agg.rowTotals2bu[c.id]} />
+                            <ResultPoint value={agg.rowTotalsNo2bu[c.id]} />
                           </td>
                         </tr>
                       ))}

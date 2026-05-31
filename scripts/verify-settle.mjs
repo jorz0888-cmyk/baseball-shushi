@@ -151,6 +151,12 @@ console.log("\n■ worked example: 1 customer, mixed days");
     70 * 0.9 + -100 * 1.0,
     "without2bu = 70*0.90 + -100*1.00 = -37",
   );
+  // bonus2bu = with2bu - without2bu = -33.6 - -37 = 3.4
+  expectApprox(
+    s.bonus2bu,
+    -33.6 - -37,
+    "bonus2bu = with2bu − without2bu = +3.4",
+  );
 }
 
 // ─── all-plus week (only positive days) ──────────────────────────────────
@@ -186,6 +192,7 @@ console.log("\n■ all positive: minusSum = 0");
   expectApprox(s.minusSum, 0, "minusSum = 0");
   expectApprox(s.with2bu, 184, "with2bu = 200 × 0.92 = 184");
   expectApprox(s.without2bu, 180, "without2bu = 200 × 0.90 = 180");
+  expectApprox(s.bonus2bu, 4, "bonus2bu = 184 − 180 = 4");
 }
 
 // ─── all-minus week (only negative days) ─────────────────────────────────
@@ -218,6 +225,7 @@ console.log("\n■ all negative: plusSum = 0");
   expectApprox(s.minusSum, -150, "minusSum = -150");
   expectApprox(s.with2bu, -150 * 0.98, "with2bu = -150 × 0.98 = -147");
   expectApprox(s.without2bu, -150, "without2bu = -150 (as-is)");
+  expectApprox(s.bonus2bu, -147 - -150, "bonus2bu = -147 − -150 = +3");
 }
 
 // ─── settleAll: shape ────────────────────────────────────────────────────

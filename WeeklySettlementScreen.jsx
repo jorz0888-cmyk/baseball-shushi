@@ -45,15 +45,18 @@ export default function WeeklySettlementScreen({ back }) {
     let weekTotal = 0;
     let with2bu = 0;
     let without2bu = 0;
+    let bonus2bu = 0;
     for (const { settlement } of settled) {
       weekTotal += settlement.weekTotal;
       with2bu += settlement.with2bu;
       without2bu += settlement.without2bu;
+      bonus2bu += settlement.bonus2bu;
     }
     return {
       weekTotal: -weekTotal,
       with2bu: -with2bu,
       without2bu: -without2bu,
+      bonus2bu: -bonus2bu,
     };
   }, [settled]);
 
@@ -96,15 +99,21 @@ export default function WeeklySettlementScreen({ back }) {
               <h2>B収支式</h2>
               <ul className="formula-list">
                 <li>
-                  <span className="formula-label plus">2部有り合計</span>
-                  <span className="formula-detail">
-                    プラス × {SETTLE_RATES.with2bu.plus} ＋ マイナス × {SETTLE_RATES.with2bu.minus}
-                  </span>
-                </li>
-                <li>
                   <span className="formula-label orange">2部無し合計</span>
                   <span className="formula-detail">
                     プラス × {SETTLE_RATES.without2bu.plus} ＋ マイナス × {SETTLE_RATES.without2bu.minus}（そのまま）
+                  </span>
+                </li>
+                <li>
+                  <span className="formula-label">2部だけ計算合計</span>
+                  <span className="formula-detail">
+                    プラス × {(SETTLE_RATES.with2bu.plus - SETTLE_RATES.without2bu.plus).toFixed(2)} ＋ マイナス × {(SETTLE_RATES.with2bu.minus - SETTLE_RATES.without2bu.minus).toFixed(2)}
+                  </span>
+                </li>
+                <li>
+                  <span className="formula-label plus">2部無し + 2部 合計</span>
+                  <span className="formula-detail">
+                    プラス × {SETTLE_RATES.with2bu.plus} ＋ マイナス × {SETTLE_RATES.with2bu.minus}（= 2部有り合計）
                   </span>
                 </li>
               </ul>
@@ -129,15 +138,21 @@ export default function WeeklySettlementScreen({ back }) {
                   </dd>
                 </div>
                 <div className="row row-big">
-                  <dt>2部有り合計</dt>
-                  <dd className="num">
-                    <SnBig value={shopSummary.with2bu} />
-                  </dd>
-                </div>
-                <div className="row row-big">
                   <dt>2部無し合計</dt>
                   <dd className="num">
                     <SnBig value={shopSummary.without2bu} fixedColor="orange" />
+                  </dd>
+                </div>
+                <div className="row row-big">
+                  <dt>2部だけ計算合計</dt>
+                  <dd className="num">
+                    <SnBig value={shopSummary.bonus2bu} />
+                  </dd>
+                </div>
+                <div className="row row-big">
+                  <dt>2部無し + 2部 合計</dt>
+                  <dd className="num">
+                    <SnBig value={shopSummary.with2bu} />
                   </dd>
                 </div>
               </dl>
@@ -167,6 +182,7 @@ function CustomerCard({ customer, settlement }) {
     minusSum,
     with2bu,
     without2bu,
+    bonus2bu,
   } = settlement;
 
   return (
@@ -224,17 +240,24 @@ function CustomerCard({ customer, settlement }) {
         <hr className="settlement-divider" />
 
         <div className="row row-big">
-          <dt>2部有り合計</dt>
-          <dd className="num">
-            {/* 値の符号に応じて緑（プラス）/赤（マイナス）/グレー（0） */}
-            <SnBig value={with2bu} />
-          </dd>
-        </div>
-        <div className="row row-big">
           <dt>2部無し合計</dt>
           <dd className="num">
             {/* 仕様: 常にオレンジ（プラスでもマイナスでも） */}
             <SnBig value={without2bu} fixedColor="orange" />
+          </dd>
+        </div>
+        <div className="row row-big">
+          <dt>2部だけ計算合計</dt>
+          <dd className="num">
+            {/* 2部 = with2bu − without2bu。符号は自動色判定 */}
+            <SnBig value={bonus2bu} />
+          </dd>
+        </div>
+        <div className="row row-big">
+          <dt>2部無し + 2部 合計</dt>
+          <dd className="num">
+            {/* 数学的に 2部有り合計と等価 */}
+            <SnBig value={with2bu} />
           </dd>
         </div>
       </dl>

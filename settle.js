@@ -46,6 +46,7 @@ export { SETTLE_RATES };
  * @property {number} minusSum                     — 負の日の合計（負値）
  * @property {number} with2bu                      — 2部有り合計
  * @property {number} without2bu                   — 2部無し合計
+ * @property {number} bonus2bu                     — 2部だけ計算合計 (= with2bu − without2bu)
  */
 
 /**
@@ -86,6 +87,10 @@ export function settleCustomer(weekData, customer) {
 
   const with2bu = apply2bu(plusSum, minusSum);
   const without2bu = applyNo2bu(plusSum, minusSum);
+  // 「2部だけ」の取り分 = 2部有り − 2部無し
+  // = + ×(0.92−0.90) + − ×(0.98−1.00) = + ×0.02 + − ×(−0.02)
+  // 通常は常に >= 0 になる（プラスは加算、マイナスからは減算が逆方向）
+  const bonus2bu = with2bu - without2bu;
 
   return {
     dailyTotals,
@@ -96,6 +101,7 @@ export function settleCustomer(weekData, customer) {
     minusSum,
     with2bu,
     without2bu,
+    bonus2bu,
   };
 }
 
