@@ -134,17 +134,21 @@ export function aggregateWeek(weekData, customers) {
 }
 
 /**
- * ポイント値の表示文字列。整数なら小数点なし、小数なら2桁、0 は "0"。
+ * ポイント値の表示文字列。整数なら小数点なし、小数なら3桁、0 は "0"。
  * 符号は呼び出し側で付ける（色クラスとセットで使うため）。
  *
- * 100 円単位の精度（2分計算で 0.02 系の差分が出るため小数 2 桁が要る）。
+ * 10 円単位の精度。
+ *   - 1pt = 1000円 なら 0.001 = 1円、0.01 = 10円、0.1 = 100円
+ *   - 1pt = 10000円 なら 0.001 = 10円、0.01 = 100円、0.1 = 1000円
+ * 後者の運用で「10円単位まで」を満たすため、小数 3 桁に揃える。
+ * それ以下（0.0001 以降）は Math.round で四捨五入。
  *
  * @param {number} v
  * @returns {string}
  */
 export function fmtPoints(v) {
   if (v === 0) return "0";
-  const rounded = Math.round(v * 100) / 100;
+  const rounded = Math.round(v * 1000) / 1000;
   if (Number.isInteger(rounded)) return String(rounded);
-  return rounded.toFixed(2);
+  return rounded.toFixed(3);
 }

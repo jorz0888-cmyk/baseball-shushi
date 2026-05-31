@@ -353,17 +353,20 @@ console.log("\n■ aggregateWeek");
   expectApprox(totals.c2, 35, "c2 week total = +35");
 }
 
-// ─── fmtPoints (100円単位、小数2桁) ──────────────────────────────────────
-console.log("\n■ fmtPoints (2 decimal — 100円単位)");
+// ─── fmtPoints (10円単位、小数3桁) ───────────────────────────────────────
+console.log("\n■ fmtPoints (3 decimal — 10円単位)");
 expect(fmtPoints(0), "0", "0 → '0'");
 expect(fmtPoints(70), "70", "70 → '70' (整数)");
 expect(fmtPoints(-50), "-50", "-50 → '-50' (整数)");
 expect(fmtPoints(7.0), "7", "7.0 → '7' (整数化されたら整数表記)");
-expect(fmtPoints(7.5), "7.50", "7.5 → '7.50' (2桁ゼロパディング)");
-expect(fmtPoints(0.3), "0.30", "0.3 → '0.30'");
-expect(fmtPoints(27.34), "27.34", "27.34 → '27.34' (100円単位)");
-expect(fmtPoints(33.6), "33.60", "33.6 → '33.60'");
+expect(fmtPoints(7.5), "7.500", "7.5 → '7.500' (3桁ゼロパディング)");
+expect(fmtPoints(0.3), "0.300", "0.3 → '0.300'");
+expect(fmtPoints(27.34), "27.340", "27.34 → '27.340'");
+expect(fmtPoints(27.345), "27.345", "27.345 → '27.345' (10円桁まで)");
+expect(fmtPoints(33.6), "33.600", "33.6 → '33.600'");
 expect(fmtPoints(-37), "-37", "-37 → '-37' (整数)");
+expect(fmtPoints(1.2345), "1.235", "1.2345 → '1.235' (5は切り上げ)");
+expect(fmtPoints(1.2344), "1.234", "1.2344 → '1.234' (4は切り捨て)");
 
 console.log(
   `\n${failed === 0 ? "✓ ALL PASS" : `✗ ${failed} FAIL`}  (${passed}/${passed + failed})`,
