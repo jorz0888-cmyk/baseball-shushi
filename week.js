@@ -113,4 +113,38 @@ export function dateOfDay(id, dayKey) {
   return d;
 }
 
+/**
+ * 週 ID を「YYYY年M月D日〜D日」形式の人間向けラベルに変換。
+ *
+ * - 月内に収まる週: "2026年6月1日〜7日"
+ * - 月をまたぐ週:   "2026年5月30日〜6月5日"
+ * - 年をまたぐ週:   "2025年12月29日〜2026年1月4日"
+ *
+ * 不正な ID は ID をそのまま返す。
+ *
+ * @param {string} id  — "YYYY-WNN"
+ * @returns {string}
+ */
+export function formatWeekRange(id) {
+  const mon = mondayOfWeek(id);
+  if (!mon) return id;
+  const sun = new Date(mon);
+  sun.setUTCDate(mon.getUTCDate() + 6);
+
+  const my = mon.getUTCFullYear();
+  const mm = mon.getUTCMonth() + 1;
+  const md = mon.getUTCDate();
+  const sy = sun.getUTCFullYear();
+  const sm = sun.getUTCMonth() + 1;
+  const sd = sun.getUTCDate();
+
+  if (my === sy && mm === sm) {
+    return `${my}年${mm}月${md}日〜${sd}日`;
+  }
+  if (my === sy) {
+    return `${my}年${mm}月${md}日〜${sm}月${sd}日`;
+  }
+  return `${my}年${mm}月${md}日〜${sy}年${sm}月${sd}日`;
+}
+
 export { DAY_KEYS, DAY_LABELS_JP };
