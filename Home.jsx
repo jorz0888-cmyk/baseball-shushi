@@ -4,7 +4,7 @@ import {
   STORAGE_KEYS,
   emptyWeek,
 } from "./storage.js";
-import { weekIdFor } from "./week.js";
+import { weekIdFor, formatWeekRange } from "./week.js";
 import { fmtPoints } from "./aggregate.js";
 import { settleAll } from "./settle.js";
 import { useInstallPrompt } from "./useInstallPrompt.js";
@@ -85,7 +85,7 @@ export default function Home({ goTo }) {
 
       <main>
         <section className="card">
-          <h2>顧客の週間収支（{todayWid}）</h2>
+          <h2>顧客の週間収支（{formatWeekRange(todayWid)}）</h2>
           {customers.length === 0 ? (
             <p className="empty">
               顧客が未登録です。下のボタンから登録してください。
