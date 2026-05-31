@@ -23,7 +23,7 @@ import {
  * 週間精算画面。
  *
  * - 上部: 前週 / 今週ボタン / 翌週 のナビ
- * - 顧客ごとに 1 カード
+ * - ユーザーごとに 1 カード
  *   - 各日 row total (月〜日)
  *   - 前半 / 後半 小計
  *   - 週合計 + プラス合計 / マイナス合計
@@ -41,7 +41,7 @@ export default function WeeklySettlementScreen({ back }) {
     () => settleAll(weekData, customers),
     [weekData, customers],
   );
-  // お店視点: 全顧客の合算を反転（顧客の勝ち = 店の負け）
+  // お店視点: 全ユーザーの合算を反転（ユーザーの勝ち = 店の負け）
   const shopSummary = useMemo(() => {
     let weekTotal = 0;
     let with2bu = 0;
@@ -92,7 +92,7 @@ export default function WeeklySettlementScreen({ back }) {
       <main>
         {customers.length === 0 ? (
           <section className="card">
-            <p className="empty">顧客が未登録です</p>
+            <p className="empty">ユーザーが未登録です</p>
           </section>
         ) : (
           <>
@@ -129,7 +129,7 @@ export default function WeeklySettlementScreen({ back }) {
                 className="hint"
                 style={{ margin: "0 0 12px", textAlign: "left" }}
               >
-                顧客全員の合算を反転 ── 顧客の勝ちが店の負け、顧客の負けが店の勝ち
+                ユーザー全員の合算を反転 ── ユーザーの勝ちが店の負け、ユーザーの負けが店の勝ち
               </p>
               <dl className="settlement-rows">
                 <div className="row row-strong">

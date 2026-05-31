@@ -1,7 +1,7 @@
 /**
  * 週間精算 — B収支式の適用。
  *
- * 1顧客 1週間分の確定値を、月〜日の row total から積み上げ、
+ * 1ユーザー 1週間分の確定値を、月〜日の row total から積み上げ、
  *  - 前半 (月火水) 小計
  *  - 後半 (木金土日) 小計
  *  - プラス合計 / マイナス合計（日単位の符号で分離）
@@ -106,7 +106,7 @@ export function settleCustomer(weekData, customer) {
 }
 
 /**
- * 全顧客分の精算結果。
+ * 全ユーザー分の精算結果。
  * @param {{[day: string]: any}} weekData
  * @param {{id:string, name:string}[]} customers
  * @returns {{ customer: any, settlement: CustomerSettlement }[]}

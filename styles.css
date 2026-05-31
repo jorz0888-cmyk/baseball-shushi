@@ -1092,7 +1092,7 @@ html {
   font-size: 12px;
 }
 
-/* 3列収支テーブル (Home) ─ 顧客名 + ＋ + − + 週合計 */
+/* 3列収支テーブル (Home) ─ ユーザー名 + ＋ + − + 週合計 */
 .summary-table-3col th,
 .summary-table-3col td {
   font-size: 13px;

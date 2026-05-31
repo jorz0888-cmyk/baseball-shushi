@@ -53,7 +53,7 @@ export default function CustomersScreen({ back }) {
     <div className="app">
       <header className="screen-header">
         <button className="back" onClick={back}>← 戻る</button>
-        <h1>顧客管理</h1>
+        <h1>ユーザー管理</h1>
         <p className="meta">{customers.length} 名</p>
       </header>
 
@@ -63,7 +63,7 @@ export default function CustomersScreen({ back }) {
           <div className="row-input">
             <input
               type="text"
-              placeholder="顧客名"
+              placeholder="ユーザー名"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && add()}
@@ -78,12 +78,12 @@ export default function CustomersScreen({ back }) {
             </button>
           </div>
           {duplicateNew && (
-            <p className="error">同じ名前の顧客が既に登録されています</p>
+            <p className="error">同じ名前のユーザーが既に登録されています</p>
           )}
         </section>
 
         <section className="card">
-          <h2>登録済み顧客</h2>
+          <h2>登録済みユーザー</h2>
           {customers.length === 0 ? (
             <p className="empty">未登録です</p>
           ) : (

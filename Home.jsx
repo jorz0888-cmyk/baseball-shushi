@@ -33,7 +33,7 @@ export default function Home({ goTo }) {
     [weekData, customers],
   );
 
-  // お店視点: 全顧客の合算を符号反転（顧客の勝ち = 店の負け）
+  // お店視点: 全ユーザーの合算を符号反転（ユーザーの勝ち = 店の負け）
   const shopRow = useMemo(() => {
     let plus = 0;
     let minus = 0;
@@ -93,16 +93,16 @@ export default function Home({ goTo }) {
 
       <main>
         <section className="card">
-          <h2>顧客の週間収支（{formatWeekRange(todayWid)}）</h2>
+          <h2>ユーザーの週間収支（{formatWeekRange(todayWid)}）</h2>
           {customers.length === 0 ? (
             <p className="empty">
-              顧客が未登録です。下のボタンから登録してください。
+              ユーザーが未登録です。下のボタンから登録してください。
             </p>
           ) : (
             <table className="summary-table summary-table-3col">
               <thead>
                 <tr>
-                  <th>顧客名</th>
+                  <th>ユーザー名</th>
                   <th className="num">＋合計</th>
                   <th className="num">−合計</th>
                   <th className="num">週合計</th>
@@ -173,7 +173,7 @@ export default function Home({ goTo }) {
           )}
           <p className="hint" style={{ textAlign: "left", margin: "12px 0 0" }}>
             ※ 試合結果が未入力の試合は週間合計に含まれません<br />
-            ※ お店行は顧客全員の合算を反転（顧客の勝ち = 店の負け）
+            ※ お店行はユーザー全員の合算を反転（ユーザーの勝ち = 店の負け）
           </p>
         </section>
 
@@ -193,7 +193,7 @@ export default function Home({ goTo }) {
             <button className="nav-tile" onClick={() => goTo("chart")}>
               <span className="nav-icon">📈</span>
               <span className="nav-label">月間グラフ</span>
-              <span className="nav-count">顧客別 折れ線</span>
+              <span className="nav-count">ユーザー別 折れ線</span>
             </button>
           </div>
         </section>
@@ -203,7 +203,7 @@ export default function Home({ goTo }) {
           <div className="nav-grid">
             <button className="nav-tile" onClick={() => goTo("customers")}>
               <span className="nav-icon">👥</span>
-              <span className="nav-label">顧客管理</span>
+              <span className="nav-label">ユーザー管理</span>
               <span className="nav-count">{customers.length} 名</span>
             </button>
             <button className="nav-tile" onClick={() => goTo("teams")}>
@@ -264,7 +264,7 @@ export default function Home({ goTo }) {
             全データをクリア
           </button>
           <p className="hint" style={{ margin: "8px 0 0", textAlign: "center" }}>
-            顧客 / チーム / 全週の入力データを端末から完全に削除します
+            ユーザー / チーム / 全週の入力データを端末から完全に削除します
           </p>
         </section>
       </main>

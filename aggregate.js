@@ -109,9 +109,9 @@ export function aggregateDay(dayData, customers) {
 }
 
 /**
- * 1週間分の集計。各日の aggregateDay を呼んで顧客別に合算。
+ * 1週間分の集計。各日の aggregateDay を呼んでユーザー別に合算。
  * 既に集計済みの dayAgg を渡すことはできないが、頻度が高い場合は
- * useMemo + 日ごと再計算で十分軽い（顧客 ~50, 試合 ~10, 7日）。
+ * useMemo + 日ごと再計算で十分軽い（ユーザー ~50, 試合 ~10, 7日）。
  *
  * @param {{[day: string]: any}} weekData
  * @param {{id:string, name:string}[]} customers

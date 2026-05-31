@@ -5,7 +5,7 @@
  * 対象キーは STORAGE_KEYS で定義された 3 つ
  * (bb-calc-customers / bb-calc-teams / bb-calc-weeks)。それ以外の
  * 補助キー (bb-calc-current-week 等) は含めない。理由: 復元時に
- * 「いつ作成したデータか」が明確になるよう、永続的な顧客/チーム
+ * 「いつ作成したデータか」が明確になるよう、永続的なユーザー/チーム
  * /試合データだけを対象にする。
  *
  * 復元後は localStorage を直接書き換えているので React 側の

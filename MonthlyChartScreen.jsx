@@ -15,11 +15,11 @@ import { settleCustomer } from "./settle.js";
 import { fmtPoints } from "./aggregate.js";
 
 /**
- * 月選択 + 顧客別 折れ線グラフ。
+ * 月選択 + ユーザー別 折れ線グラフ。
  *
  * - 月の中で「いずれかの日が含まれる ISO 週」を全て抽出 → X 軸ラベル
  *   は "W22" 等の週番号。
- * - 顧客ごとに 1 本ライン、ハッシュベースで決定論的に色を割当。
+ * - ユーザーごとに 1 本ライン、ハッシュベースで決定論的に色を割当。
  * - 「収支タイプ」セグメントで weekTotal / 2分有り / 2分無し を切替。
  *   設定の好みで使い分けられる。
  */
@@ -39,7 +39,7 @@ const PALETTE = Object.freeze([
   "#84cc16", // lime
 ]);
 
-/** 顧客 ID から決定論的に色を選ぶ (FNV-1a) */
+/** ユーザー ID から決定論的に色を選ぶ (FNV-1a) */
 function colorFor(id) {
   let h = 2166136261;
   for (let i = 0; i < id.length; i++) {
@@ -111,7 +111,7 @@ export default function MonthlyChartScreen({ back }) {
       picked.month === today.getMonth() + 1;
   }
 
-  // 全顧客が全週 0 / 未入力 ならデータなし扱い
+  // 全ユーザーが全週 0 / 未入力 ならデータなし扱い
   const hasAnyValue = useMemo(() => {
     for (const row of chartData) {
       for (const c of customers) {
@@ -171,7 +171,7 @@ export default function MonthlyChartScreen({ back }) {
             {picked.year}年{picked.month}月 ({weekIdsInMonth.length}週)
           </h2>
           {customers.length === 0 ? (
-            <p className="empty">顧客が未登録です</p>
+            <p className="empty">ユーザーが未登録です</p>
           ) : weekIdsInMonth.length === 0 ? (
             <p className="empty">対象週がありません</p>
           ) : !hasAnyValue ? (

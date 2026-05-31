@@ -25,8 +25,8 @@ import GameResultModal from "./GameResultModal.jsx";
  *
  * - 上部: 月〜日タブで対象日を切り替え
  * - 中段: 試合追加フォーム（チーム＋ハンデ）
- * - グリッド: 顧客 × 試合。各セルでポイントと出/バックを入力
- * - 列計（試合別） / 行計（顧客別） / 全体計をリアルタイム表示
+ * - グリッド: ユーザー × 試合。各セルでポイントと出/バックを入力
+ * - 列計（試合別） / 行計（ユーザー別） / 全体計をリアルタイム表示
  *
  * 状態は localStorage の bb-calc-weeks 配下に書き戻す。週は ISO 週 ID
  * （月曜始まり）でキー化。
@@ -246,7 +246,7 @@ export default function DailyInputScreen({ back }) {
           <section className="card">
             <h2>準備中</h2>
             <p className="empty">
-              {customers.length === 0 && "顧客が未登録です。"}
+              {customers.length === 0 && "ユーザーが未登録です。"}
               {customers.length === 0 && teams.length === 0 && " "}
               {teams.length === 0 && "チームが未登録です。"}
               <br />
@@ -325,7 +325,7 @@ export default function DailyInputScreen({ back }) {
                   <table className="bet-grid">
                     <thead>
                       <tr>
-                        <th className="sticky-left corner">顧客</th>
+                        <th className="sticky-left corner">ユーザー</th>
                         {day.games.map((g) => (
                           <th key={g.id} className="game-col-head">
                             <div className="game-team-row">
@@ -456,7 +456,7 @@ export default function DailyInputScreen({ back }) {
             confirmDeleteGame.opponentTeamId
               ? ` vs ${teamName(confirmDeleteGame.opponentTeamId)}`
               : ""
-          }」の試合を削除しますか？\n（この試合の全顧客の賭けも消えます）`}
+          }」の試合を削除しますか？\n（この試合の全ユーザーの賭けも消えます）`}
           confirmLabel="削除する"
           onConfirm={() => deleteGame(confirmDeleteGame.id)}
           onCancel={() => setConfirmDeleteGame(null)}
