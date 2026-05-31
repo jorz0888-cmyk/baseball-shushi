@@ -798,14 +798,16 @@ textarea:focus {
 
 .week-label {
   text-align: center;
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 14px;
-  letter-spacing: 0.08em;
+  /* 日付ラベル「YYYY年M月D日〜D日」を読みやすく ── モノスペースを
+     やめて Noto Sans JP に揃える */
+  font-size: 13px;
+  font-weight: 600;
   color: var(--ink);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
+  line-height: 1.3;
 }
 
 .this-week-link {

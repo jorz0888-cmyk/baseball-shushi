@@ -9,6 +9,7 @@ import {
 import {
   weekIdFor,
   shiftWeekId,
+  formatWeekRange,
   DAY_KEYS,
   DAY_LABELS_JP,
   dateOfDay,
@@ -213,7 +214,7 @@ export default function DailyInputScreen({ back }) {
       <nav className="week-nav">
         <button onClick={() => setWid(shiftWeekId(wid, -1))}>◀ 前週</button>
         <span className="week-label">
-          {wid}
+          {formatWeekRange(wid)}
           {wid !== todayWid && (
             <button
               className="this-week-link"

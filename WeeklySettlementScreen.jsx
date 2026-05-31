@@ -7,6 +7,7 @@ import {
 import {
   weekIdFor,
   shiftWeekId,
+  formatWeekRange,
   DAY_KEYS,
   DAY_LABELS_JP,
 } from "./week.js";
@@ -73,7 +74,7 @@ export default function WeeklySettlementScreen({ back }) {
           ◀ 前週
         </button>
         <span className="week-label">
-          {currentWid}
+          {formatWeekRange(currentWid)}
           {currentWid !== todayWid && (
             <button
               className="this-week-link"
