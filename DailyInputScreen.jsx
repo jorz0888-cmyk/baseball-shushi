@@ -6,9 +6,10 @@ import {
   emptyWeek,
   makeId,
 } from "./storage.js";
-import { weekIdFor, DAY_KEYS, DAY_LABELS_JP } from "./week.js";
+import { weekIdFor, DAY_KEYS, DAY_LABELS_JP, dateOfDay } from "./week.js";
 import { HANDICAP_OPTIONS } from "./handicap.js";
 import { aggregateDay, fmtPoints } from "./aggregate.js";
+import { gamesOn, dateKey } from "./schedule.js";
 import ConfirmDialog from "./ConfirmDialog.jsx";
 import GameResultModal from "./GameResultModal.jsx";
 
@@ -133,6 +134,58 @@ export default function DailyInputScreen({ back }) {
     return teams.find((t) => t.id === teamId)?.name ?? "—";
   }
 
+  /**
+   * 選択中の曜日の試合スケジュールから対戦カードを一括取得し、
+   * グリッドに games として追加する。
+   *
+   * 流れ:
+   *   1. (週 ID, 曜日) → JST 日付の Date
+   *   2. "yyyy-mm-dd" 化して schedule.js から該当日の試合配列を取得
+   *   3. 各カードのチーム名を teams（ユーザ登録）にマッチング
+   *   4. 全て揃ったものを games に追加
+   *   5. データ無し → 「試合なし」案内 / チーム未登録 → 案内
+   */
+  function addTodayGames() {
+    const date = dateOfDay(wid, selectedDay);
+    if (!date) return;
+    const key = dateKey(date);
+    const cards = gamesOn(key);
+
+    if (cards.length === 0) {
+      alert(
+        `${key} の試合データはありません。\n（雨天中止・休養日、または日程データが未登録）`,
+      );
+      return;
+    }
+
+    const teamByName = new Map(teams.map((t) => [t.name, t]));
+    const newGames = [];
+    const missing = new Set();
+    for (const card of cards) {
+      const home = teamByName.get(card.home);
+      const away = teamByName.get(card.away);
+      if (!home) missing.add(card.home);
+      if (!away) missing.add(card.away);
+      if (!home || !away) continue;
+      newGames.push({
+        id: makeId("game"),
+        teamId: home.id,
+        opponentTeamId: away.id,
+        handicap: "1",
+        result: null,
+      });
+    }
+
+    if (missing.size > 0) {
+      alert(
+        `次のチームが未登録です:\n${[...missing].join(", ")}\n\n「← 戻る」→「⚾ チーム管理」→「NPB 12 球団を一括追加」で登録してください。`,
+      );
+      return;
+    }
+
+    updateDay((d) => ({ ...d, games: [...d.games, ...newGames] }));
+  }
+
   function getBet(customerId, gameId) {
     return day.bets.find(
       (b) => b.customerId === customerId && b.gameId === gameId,
@@ -223,6 +276,19 @@ export default function DailyInputScreen({ back }) {
                   追加
                 </button>
               </div>
+
+              <button
+                className="primary add-today-btn"
+                onClick={addTodayGames}
+              >
+                📅 {DAY_LABELS_JP[dayIdx]}曜日 の試合を一括追加
+              </button>
+              <p
+                className="hint"
+                style={{ margin: "6px 0 0", textAlign: "left" }}
+              >
+                内蔵 NPB 日程から対戦カードを自動でグリッドに追加。ハンデは試合ごとに手動設定。
+              </p>
             </section>
 
             <section className="card grid-card">

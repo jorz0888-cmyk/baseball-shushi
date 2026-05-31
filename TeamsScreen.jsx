@@ -5,6 +5,7 @@ import {
   makeId,
 } from "./storage.js";
 import ConfirmDialog from "./ConfirmDialog.jsx";
+import { NPB_TEAMS_PRESET } from "./npbTeams.js";
 
 /**
  * Per the v2 spec, teams hold only a name. Handicap is per-game (set in
@@ -54,6 +55,24 @@ export default function TeamsScreen({ back }) {
     setConfirmDelete(null);
   }
 
+  /** NPB 12 球団のうち未登録のものを一括追加。既存と重複しないもの
+   *  だけ足すので、何度押しても重複しない。*/
+  function addNpbPreset() {
+    const existingNames = new Set(teams.map((t) => t.name));
+    const toAdd = NPB_TEAMS_PRESET.filter((p) => !existingNames.has(p.name));
+    if (toAdd.length === 0) return;
+    const additions = toAdd.map((p) => ({
+      id: makeId("team"),
+      name: p.name,
+    }));
+    setTeams([...teams, ...additions]);
+  }
+
+  const npbAlreadyAddedCount = NPB_TEAMS_PRESET.filter((p) =>
+    teams.some((t) => t.name === p.name),
+  ).length;
+  const npbToAddCount = NPB_TEAMS_PRESET.length - npbAlreadyAddedCount;
+
   return (
     <div className="app">
       <header className="screen-header">
@@ -85,6 +104,19 @@ export default function TeamsScreen({ back }) {
           {duplicateNew && (
             <p className="error">同じ名前のチームが既に登録されています</p>
           )}
+
+          <button
+            className="primary npb-preset-btn"
+            onClick={addNpbPreset}
+            disabled={npbToAddCount === 0}
+          >
+            {npbToAddCount === 0
+              ? "✓ NPB 12 球団は全て登録済み"
+              : `⚾ NPB 12 球団を一括追加 (${npbToAddCount} チーム)`}
+          </button>
+          <p className="hint" style={{ margin: "8px 0 0", textAlign: "left" }}>
+            セ・パ 12 球団（巨人 / 阪神 / DeNA / 広島 / 中日 / ヤクルト / ソフトバンク / ロッテ / 楽天 / 西武 / オリックス / 日本ハム）。
+          </p>
         </section>
 
         <section className="card">

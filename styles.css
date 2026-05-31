@@ -1039,6 +1039,33 @@ html {
   margin-top: 4px;
 }
 
+.add-today-btn {
+  width: 100%;
+  margin-top: 12px;
+  font-size: 14px;
+  min-height: 48px;
+  background: var(--surface-elev);
+  color: var(--plus);
+  border: 1px solid var(--plus);
+}
+
+.add-today-btn:hover:not(:disabled) {
+  background: rgba(45, 212, 160, 0.1);
+}
+
+.npb-preset-btn {
+  width: 100%;
+  margin-top: 12px;
+  font-size: 14px;
+  min-height: 48px;
+}
+
+.npb-preset-btn:disabled {
+  background: var(--surface-elev);
+  color: var(--ink-subtle);
+  border: 1px solid var(--line);
+}
+
 /* グリッドヘッダの試合表示: 出し側チーム + ハンデ符号 + vs + 対戦相手 */
 .give-team {
   font-weight: 700;
