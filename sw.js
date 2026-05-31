@@ -1,15 +1,25 @@
 // Minimal offline-capable service worker.
 // Caches the app shell on first install, then serves cache-first.
-// Bump CACHE_VERSION to force clients to re-download after a deploy.
+//
+// CACHE_VERSION is derived from the ?v=<BUILD_ID> query string that
+// main.jsx appends when registering this SW. Each Vite build mints a
+// new BUILD_ID (see vite.config.js __BUILD_ID__) so the SW URL
+// changes per deploy, the browser refetches sw.js, the new SW lands
+// in "installed" state, and main.jsx shows the update banner.
 
-const CACHE_VERSION = "bb-calc-v1";
+const url = new URL(self.location);
+const VERSION = url.searchParams.get("v") || "dev";
+const CACHE_VERSION = "bb-calc-" + VERSION;
+
 const SHELL = ["/", "/index.html", "/manifest.webmanifest", "/icon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_VERSION).then((cache) => cache.addAll(SHELL)),
   );
-  self.skipWaiting();
+  // Note: we do NOT skipWaiting here — that's the whole point. The
+  // new SW sits in "waiting" until UpdateBanner postMessages
+  // SKIP_WAITING below.
 });
 
 self.addEventListener("activate", (event) => {
@@ -25,19 +35,26 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+// Triggered by useUpdateAvailable.applyUpdate() when the user taps
+// 更新する on the banner. After skipWaiting, the new SW activates,
+// fires controllerchange in main.jsx, and that handler reloads.
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
-  // Only handle same-origin GETs. Everything else falls through to the network.
   if (request.method !== "GET") return;
-  const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return;
+  const reqUrl = new URL(request.url);
+  if (reqUrl.origin !== self.location.origin) return;
 
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached;
       return fetch(request)
         .then((response) => {
-          // Avoid caching opaque or partial responses.
           if (!response.ok || response.type !== "basic") return response;
           const copy = response.clone();
           caches.open(CACHE_VERSION).then((cache) => cache.put(request, copy));
