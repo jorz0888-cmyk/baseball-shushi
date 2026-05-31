@@ -12,6 +12,7 @@ import {
   downloadBackup,
   readBackupFile,
   applyBackup,
+  clearAll,
 } from "./backup.js";
 import ConfirmDialog from "./ConfirmDialog.jsx";
 
@@ -49,10 +50,11 @@ export default function Home({ goTo }) {
     };
   }, [settled]);
 
-  // ─── Backup / Restore state ───────────────────────────────────────────
+  // ─── Backup / Restore / Clear state ───────────────────────────────────
   const fileInputRef = useRef(null);
   const [pendingRestore, setPendingRestore] = useState(null);
   const [restoreError, setRestoreError] = useState(null);
+  const [confirmClearAll, setConfirmClearAll] = useState(false);
 
   async function handleRestoreSelected(e) {
     const file = e.target.files?.[0];
@@ -73,6 +75,12 @@ export default function Home({ goTo }) {
     applyBackup(pendingRestore);
     // useLocalStorage は外部書き換えを検知しないので、ページリロードで
     // React 側を再初期化する。
+    window.location.reload();
+  }
+
+  function handleClearAll() {
+    clearAll();
+    // 復元と同じ理由でリロード ── hook の値を初期状態に戻すため。
     window.location.reload();
   }
 
@@ -246,6 +254,19 @@ export default function Home({ goTo }) {
         )}
 
         <p className="hint">v1.0 — 全機能完成 ✓</p>
+
+        {/* 画面最下部 — 危険ゾーン。全データ削除は不可逆なので独立配置。 */}
+        <section className="card danger-zone">
+          <button
+            className="clear-all-btn"
+            onClick={() => setConfirmClearAll(true)}
+          >
+            全データをクリア
+          </button>
+          <p className="hint" style={{ margin: "8px 0 0", textAlign: "center" }}>
+            顧客 / チーム / 全週の入力データを端末から完全に削除します
+          </p>
+        </section>
       </main>
 
       {pendingRestore && (
@@ -256,6 +277,15 @@ export default function Home({ goTo }) {
           confirmLabel="上書きする"
           onConfirm={confirmRestore}
           onCancel={() => setPendingRestore(null)}
+        />
+      )}
+
+      {confirmClearAll && (
+        <ConfirmDialog
+          message={`全てのデータを削除しますか？\nこの操作は取り消せません。`}
+          confirmLabel="はい"
+          onConfirm={handleClearAll}
+          onCancel={() => setConfirmClearAll(false)}
         />
       )}
     </div>

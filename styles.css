@@ -1216,6 +1216,28 @@ html {
   background: rgba(232, 168, 56, 0.1);
 }
 
+/* 画面最下部の「全データをクリア」セクション。不可逆な操作なので
+   ボタンは赤の outline で目立たせ、カードも控えめなトーンに。 */
+.danger-zone {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  margin-top: 24px;
+}
+
+.clear-all-btn {
+  width: 100%;
+  background: transparent;
+  color: var(--minus);
+  border: 1px solid var(--minus);
+  font-size: 14px;
+  font-weight: 600;
+  min-height: 48px;
+}
+
+.clear-all-btn:hover {
+  background: rgba(240, 96, 93, 0.08);
+}
+
 /* ─── Monthly chart screen ───────────────────────────────────────────── */
 .month-nav {
   /* 共通の week-nav レイアウトを継承。固有の調整はここに */

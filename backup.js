@@ -129,4 +129,16 @@ export function applyBackup(backup) {
   }
 }
 
+/**
+ * BACKUP_KEYS で管理している全てのデータを localStorage から削除する。
+ * 呼び出し側で確認ダイアログを出してから実行すること。実行後は
+ * useLocalStorage hook の値を再初期化するため window.location.reload()
+ * が必要。
+ */
+export function clearAll() {
+  for (const key of BACKUP_KEYS) {
+    localStorage.removeItem(key);
+  }
+}
+
 export { BACKUP_KEYS, BACKUP_VERSION };
