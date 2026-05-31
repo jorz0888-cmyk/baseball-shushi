@@ -6,7 +6,13 @@ import {
   emptyWeek,
   makeId,
 } from "./storage.js";
-import { weekIdFor, DAY_KEYS, DAY_LABELS_JP, dateOfDay } from "./week.js";
+import {
+  weekIdFor,
+  shiftWeekId,
+  DAY_KEYS,
+  DAY_LABELS_JP,
+  dateOfDay,
+} from "./week.js";
 import { HANDICAP_OPTIONS } from "./handicap.js";
 import { aggregateDay, fmtPoints } from "./aggregate.js";
 import { gamesOn, dateKey } from "./schedule.js";
@@ -25,7 +31,9 @@ import GameResultModal from "./GameResultModal.jsx";
  * （月曜始まり）でキー化。
  */
 export default function DailyInputScreen({ back }) {
-  const wid = useMemo(() => weekIdFor(new Date()), []);
+  // 今日の週を初期値に。週ナビで前週/翌週へ移動可能。
+  const todayWid = useMemo(() => weekIdFor(new Date()), []);
+  const [wid, setWid] = useState(todayWid);
   const [weeks, setWeeks] = useLocalStorage(STORAGE_KEYS.weeks, {});
   const [customers] = useLocalStorage(STORAGE_KEYS.customers, []);
   const [teams] = useLocalStorage(STORAGE_KEYS.teams, []);
@@ -201,6 +209,22 @@ export default function DailyInputScreen({ back }) {
         <h1>日別入力</h1>
         <p className="meta">{wid}</p>
       </header>
+
+      <nav className="week-nav">
+        <button onClick={() => setWid(shiftWeekId(wid, -1))}>◀ 前週</button>
+        <span className="week-label">
+          {wid}
+          {wid !== todayWid && (
+            <button
+              className="this-week-link"
+              onClick={() => setWid(todayWid)}
+            >
+              今週へ
+            </button>
+          )}
+        </span>
+        <button onClick={() => setWid(shiftWeekId(wid, 1))}>翌週 ▶</button>
+      </nav>
 
       <nav className="day-tabs" role="tablist">
         {DAY_KEYS.map((dk, i) => (
