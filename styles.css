@@ -1190,3 +1190,77 @@ html {
   color: var(--ink);
   font-size: 15px;
 }
+
+/* ─── Backup / Restore (Home データ管理 card) ─────────────────────────── */
+.backup-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.backup-btn {
+  width: 100%;
+  font-size: 14px;
+  min-height: 48px;
+}
+
+.restore-btn {
+  background: var(--surface-elev);
+  color: var(--orange);
+  border: 1px solid var(--orange);
+}
+
+.restore-btn:hover {
+  background: rgba(232, 168, 56, 0.1);
+}
+
+/* ─── Monthly chart screen ───────────────────────────────────────────── */
+.month-nav {
+  /* 共通の week-nav レイアウトを継承。固有の調整はここに */
+}
+
+.value-type-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.value-type-btn {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--ink-muted);
+  font-weight: 600;
+  min-height: 40px;
+}
+
+.value-type-btn.active {
+  background: var(--plus);
+  color: #0a0e17;
+  border-color: var(--plus);
+}
+
+.chart-card {
+  padding-bottom: 12px;
+}
+
+.chart-wrap {
+  /* Recharts ResponsiveContainer は親の幅を必要とする */
+  width: 100%;
+  /* 下部の Legend の高さを確保 */
+  margin-top: 4px;
+}
+
+/* recharts デフォルト色を上書きしてダークテーマと馴染ませる */
+.chart-wrap .recharts-cartesian-axis-tick text {
+  fill: var(--ink-muted);
+}
+
+.chart-wrap .recharts-legend-item-text {
+  color: var(--ink) !important;
+  font-size: 12px;
+}
+
+.chart-wrap .recharts-tooltip-wrapper {
+  outline: none;
+}

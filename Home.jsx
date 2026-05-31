@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   useLocalStorage,
   STORAGE_KEYS,
@@ -8,10 +8,16 @@ import { weekIdFor } from "./week.js";
 import { fmtPoints } from "./aggregate.js";
 import { settleAll } from "./settle.js";
 import { useInstallPrompt } from "./useInstallPrompt.js";
+import {
+  downloadBackup,
+  readBackupFile,
+  applyBackup,
+} from "./backup.js";
+import ConfirmDialog from "./ConfirmDialog.jsx";
 
 /**
- * Top screen — week summary + nav to management / daily input screens.
- * Weekly totals from aggregateWeek are now live as of Stage 3.
+ * Top screen — week summary + nav to management / daily input
+ * / settlement / chart screens + backup-restore.
  */
 export default function Home({ goTo }) {
   const todayWid = useMemo(() => weekIdFor(new Date()), []);
@@ -21,11 +27,11 @@ export default function Home({ goTo }) {
   const { canInstall, install } = useInstallPrompt();
 
   const weekData = weeks[todayWid] ?? emptyWeek();
-  // 週間収支は settle 経由で取得 → ＋合計 / −合計 / 週合計 を一覧
   const settled = useMemo(
     () => settleAll(weekData, customers),
     [weekData, customers],
   );
+
   // お店視点: 全顧客の合算を符号反転（顧客の勝ち = 店の負け）
   const shopRow = useMemo(() => {
     let plus = 0;
@@ -37,13 +43,38 @@ export default function Home({ goTo }) {
       total += settlement.weekTotal;
     }
     return {
-      // 顧客の負け (minusSum は負値) → お店のプラス
       shopPlus: -minus,
-      // 顧客の勝ち (plusSum は正値) → お店のマイナス
       shopMinus: -plus,
       shopTotal: -total,
     };
   }, [settled]);
+
+  // ─── Backup / Restore state ───────────────────────────────────────────
+  const fileInputRef = useRef(null);
+  const [pendingRestore, setPendingRestore] = useState(null);
+  const [restoreError, setRestoreError] = useState(null);
+
+  async function handleRestoreSelected(e) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // 同じファイルを再選択できるよう reset
+    if (!file) return;
+    try {
+      const parsed = await readBackupFile(file);
+      setRestoreError(null);
+      setPendingRestore(parsed);
+    } catch (err) {
+      setRestoreError(err instanceof Error ? err.message : String(err));
+      setPendingRestore(null);
+    }
+  }
+
+  function confirmRestore() {
+    if (!pendingRestore) return;
+    applyBackup(pendingRestore);
+    // useLocalStorage は外部書き換えを検知しないので、ページリロードで
+    // React 側を再初期化する。
+    window.location.reload();
+  }
 
   return (
     <div className="app">
@@ -139,7 +170,7 @@ export default function Home({ goTo }) {
         </section>
 
         <section className="card">
-          <h2>入力</h2>
+          <h2>入力 / 集計</h2>
           <div className="nav-grid">
             <button className="nav-tile" onClick={() => goTo("daily")}>
               <span className="nav-icon">📅</span>
@@ -150,6 +181,11 @@ export default function Home({ goTo }) {
               <span className="nav-icon">📊</span>
               <span className="nav-label">週間精算</span>
               <span className="nav-count">B収支式</span>
+            </button>
+            <button className="nav-tile" onClick={() => goTo("chart")}>
+              <span className="nav-icon">📈</span>
+              <span className="nav-label">月間グラフ</span>
+              <span className="nav-count">顧客別 折れ線</span>
             </button>
           </div>
         </section>
@@ -170,6 +206,33 @@ export default function Home({ goTo }) {
           </div>
         </section>
 
+        <section className="card">
+          <h2>データ管理</h2>
+          <div className="backup-buttons">
+            <button className="primary backup-btn" onClick={downloadBackup}>
+              📥 データをバックアップ
+            </button>
+            <button
+              className="backup-btn restore-btn"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              📤 データを復元
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/json,.json"
+              onChange={handleRestoreSelected}
+              style={{ display: "none" }}
+            />
+          </div>
+          {restoreError && <p className="error">{restoreError}</p>}
+          <p className="hint" style={{ textAlign: "left", margin: "12px 0 0" }}>
+            JSON ファイルで端末間移行・バックアップが可能。<br />
+            復元時は既存データを上書きします（事前にバックアップ推奨）。
+          </p>
+        </section>
+
         {canInstall && (
           <section className="card install-card">
             <h2>ホーム画面に追加</h2>
@@ -184,6 +247,17 @@ export default function Home({ goTo }) {
 
         <p className="hint">v1.0 — 全機能完成 ✓</p>
       </main>
+
+      {pendingRestore && (
+        <ConfirmDialog
+          message={`バックアップを読み込みます。\n作成日時: ${
+            pendingRestore.exportedAt?.slice(0, 16).replace("T", " ") ?? "不明"
+          }\n\n既存データを上書きしますか？\nこの操作は取り消せません。`}
+          confirmLabel="上書きする"
+          onConfirm={confirmRestore}
+          onCancel={() => setPendingRestore(null)}
+        />
+      )}
     </div>
   );
 }
