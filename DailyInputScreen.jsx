@@ -287,7 +287,7 @@ export default function DailyInputScreen({ back }) {
                             </button>
                           </th>
                         ))}
-                        <th className="sticky-right corner">行計(2部無)</th>
+                        <th className="sticky-right corner">行計(2分無)</th>
                       </tr>
                     </thead>
                     <tbody>

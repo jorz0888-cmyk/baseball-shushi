@@ -26,7 +26,7 @@ import {
  *   - 各日 row total (月〜日)
  *   - 前半 / 後半 小計
  *   - 週合計 + プラス合計 / マイナス合計
- *   - 2部有り合計（緑） / 2部無し合計（オレンジ）
+ *   - 2分有り合計（緑） / 2分無し合計（オレンジ）
  */
 export default function WeeklySettlementScreen({ back }) {
   const todayWid = useMemo(() => weekIdFor(new Date()), []);
@@ -99,21 +99,21 @@ export default function WeeklySettlementScreen({ back }) {
               <h2>B収支式</h2>
               <ul className="formula-list">
                 <li>
-                  <span className="formula-label orange">2部無し合計</span>
+                  <span className="formula-label orange">2分無し合計</span>
                   <span className="formula-detail">
                     プラス × {SETTLE_RATES.without2bu.plus} ＋ マイナス × {SETTLE_RATES.without2bu.minus}（そのまま）
                   </span>
                 </li>
                 <li>
-                  <span className="formula-label">2部だけ計算合計</span>
+                  <span className="formula-label">2分だけ計算合計</span>
                   <span className="formula-detail">
                     プラス × {(SETTLE_RATES.with2bu.plus - SETTLE_RATES.without2bu.plus).toFixed(2)} ＋ マイナス × {(SETTLE_RATES.with2bu.minus - SETTLE_RATES.without2bu.minus).toFixed(2)}
                   </span>
                 </li>
                 <li>
-                  <span className="formula-label plus">2部無し + 2部 合計</span>
+                  <span className="formula-label plus">2分無し + 2分 合計</span>
                   <span className="formula-detail">
-                    プラス × {SETTLE_RATES.with2bu.plus} ＋ マイナス × {SETTLE_RATES.with2bu.minus}（= 2部有り合計）
+                    プラス × {SETTLE_RATES.with2bu.plus} ＋ マイナス × {SETTLE_RATES.with2bu.minus}（= 2分有り合計）
                   </span>
                 </li>
               </ul>
@@ -138,19 +138,19 @@ export default function WeeklySettlementScreen({ back }) {
                   </dd>
                 </div>
                 <div className="row row-big">
-                  <dt>2部無し合計</dt>
+                  <dt>2分無し合計</dt>
                   <dd className="num">
                     <SnBig value={shopSummary.without2bu} fixedColor="orange" />
                   </dd>
                 </div>
                 <div className="row row-big">
-                  <dt>2部だけ計算合計</dt>
+                  <dt>2分だけ計算合計</dt>
                   <dd className="num">
                     <SnBig value={shopSummary.bonus2bu} />
                   </dd>
                 </div>
                 <div className="row row-big">
-                  <dt>2部無し + 2部 合計</dt>
+                  <dt>2分無し + 2分 合計</dt>
                   <dd className="num">
                     <SnBig value={shopSummary.with2bu} />
                   </dd>
@@ -240,23 +240,23 @@ function CustomerCard({ customer, settlement }) {
         <hr className="settlement-divider" />
 
         <div className="row row-big">
-          <dt>2部無し合計</dt>
+          <dt>2分無し合計</dt>
           <dd className="num">
             {/* 仕様: 常にオレンジ（プラスでもマイナスでも） */}
             <SnBig value={without2bu} fixedColor="orange" />
           </dd>
         </div>
         <div className="row row-big">
-          <dt>2部だけ計算合計</dt>
+          <dt>2分だけ計算合計</dt>
           <dd className="num">
-            {/* 2部 = with2bu − without2bu。符号は自動色判定 */}
+            {/* 2分 = with2bu − without2bu。符号は自動色判定 */}
             <SnBig value={bonus2bu} />
           </dd>
         </div>
         <div className="row row-big">
-          <dt>2部無し + 2部 合計</dt>
+          <dt>2分無し + 2分 合計</dt>
           <dd className="num">
-            {/* 数学的に 2部有り合計と等価 */}
+            {/* 数学的に 2分有り合計と等価 */}
             <SnBig value={with2bu} />
           </dd>
         </div>
@@ -287,11 +287,11 @@ function Sn({ value, small = false, strong = false }) {
 }
 
 /**
- * 2部有り / 2部無し合計用の大きいサイズ。
+ * 2分有り / 2分無し合計用の大きいサイズ。
  *
  * - fixedColor 未指定: 値の符号で plus/minus/neutral を自動選択
- *   （2部有り合計 = マイナスなら赤、プラスなら緑）
- * - fixedColor 指定: その色固定（2部無し合計 = 常にオレンジ）
+ *   （2分有り合計 = マイナスなら赤、プラスなら緑）
+ * - fixedColor 指定: その色固定（2分無し合計 = 常にオレンジ）
  */
 function SnBig({ value, fixedColor }) {
   const sign = value > 0 ? "+" : value < 0 ? "−" : "";

@@ -234,7 +234,7 @@ console.log("\n■ aggregateDay: 2 customers × 3 games, mixed");
   // grand total
   expectApprox(agg.grandTotal, -35 + -10, "grand total = -45");
 
-  // rowTotals2bu — 行ごと + / − を分けて 2部有り計算
+  // rowTotals2bu — 行ごと + / − を分けて 2分有り計算
   // c1: +15 と -50 → 15*0.92 + -50*0.98 = 13.8 - 49 = -35.2
   expectApprox(
     agg.rowTotals2bu.c1,
@@ -248,7 +248,7 @@ console.log("\n■ aggregateDay: 2 customers × 3 games, mixed");
     "c2 rowTotals2bu = +50×0.92 + -60×0.98 = -12.8",
   );
 
-  // rowTotalsNo2bu — 同じ + / − を 2部無しで計算
+  // rowTotalsNo2bu — 同じ + / − を 2分無しで計算
   // c1: +15 と -50 → 15*0.90 + -50*1.00 = 13.5 - 50 = -36.5
   expectApprox(
     agg.rowTotalsNo2bu.c1,

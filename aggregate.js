@@ -86,7 +86,7 @@ export function aggregateDay(dayData, customers) {
   for (const c of customers) {
     cells[c.id] = {};
     rowTotals[c.id] = 0;
-    // 行ごとに + / − を分けて 2部有り / 2部無し計算に使う
+    // 行ごとに + / − を分けて 2分有り / 2分無し計算に使う
     let rowPlus = 0;
     let rowMinus = 0;
     for (const g of games) {
@@ -137,7 +137,7 @@ export function aggregateWeek(weekData, customers) {
  * ポイント値の表示文字列。整数なら小数点なし、小数なら2桁、0 は "0"。
  * 符号は呼び出し側で付ける（色クラスとセットで使うため）。
  *
- * 100 円単位の精度（2部計算で 0.02 系の差分が出るため小数 2 桁が要る）。
+ * 100 円単位の精度（2分計算で 0.02 系の差分が出るため小数 2 桁が要る）。
  *
  * @param {number} v
  * @returns {string}

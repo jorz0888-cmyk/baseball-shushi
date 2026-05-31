@@ -5,8 +5,8 @@
  *  - 前半 (月火水) 小計
  *  - 後半 (木金土日) 小計
  *  - プラス合計 / マイナス合計（日単位の符号で分離）
- *  - 2部有り合計  = プラス合計 × 0.92 + マイナス合計 × 0.98
- *  - 2部無し合計  = プラス合計 × 0.90 + マイナス合計 × 1.00（そのまま）
+ *  - 2分有り合計  = プラス合計 × 0.92 + マイナス合計 × 0.98
+ *  - 2分無し合計  = プラス合計 × 0.90 + マイナス合計 × 1.00（そのまま）
  *
  * 「プラスの合計 / マイナスの合計」の解釈は v2 仕様書では一義に定まら
  * ないため、ここでは **日単位** ── 1日 (=月〜日の各 row total) の符号で
@@ -44,9 +44,9 @@ export { SETTLE_RATES };
  * @property {number} weekTotal                    — 週間合計（単純合計）
  * @property {number} plusSum                      — 正の日の合計
  * @property {number} minusSum                     — 負の日の合計（負値）
- * @property {number} with2bu                      — 2部有り合計
- * @property {number} without2bu                   — 2部無し合計
- * @property {number} bonus2bu                     — 2部だけ計算合計 (= with2bu − without2bu)
+ * @property {number} with2bu                      — 2分有り合計
+ * @property {number} without2bu                   — 2分無し合計
+ * @property {number} bonus2bu                     — 2分だけ計算合計 (= with2bu − without2bu)
  */
 
 /**
@@ -87,7 +87,7 @@ export function settleCustomer(weekData, customer) {
 
   const with2bu = apply2bu(plusSum, minusSum);
   const without2bu = applyNo2bu(plusSum, minusSum);
-  // 「2部だけ」の取り分 = 2部有り − 2部無し
+  // 「2分だけ」の取り分 = 2分有り − 2分無し
   // = + ×(0.92−0.90) + − ×(0.98−1.00) = + ×0.02 + − ×(−0.02)
   // 通常は常に >= 0 になる（プラスは加算、マイナスからは減算が逆方向）
   const bonus2bu = with2bu - without2bu;
