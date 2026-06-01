@@ -102,6 +102,33 @@ export default function DailyInputScreen({ back }) {
     }));
   }
 
+  /**
+   * 試合の「ハンデ出し側」と「対戦相手」を入れ替える。
+   *
+   * 自動入力 (今日の試合を追加) は NPB 日程の home / away をそのまま
+   * teamId / opponentTeamId に当てるが、ハンデは必ずしも home 側が
+   * 出す側とは限らない (オッズメーカーの判断次第)。そのため、出し側を
+   * 後から手動で入れ替えるためのボタン。
+   *
+   * 既に入っているベットの side (give / receive) も同時に反転させて
+   * 「あ さんは 巨人 に賭けた」という意味を保つ。
+   */
+  function swapGameSides(gameId) {
+    updateDay((d) => ({
+      ...d,
+      games: d.games.map((g) =>
+        g.id === gameId
+          ? { ...g, teamId: g.opponentTeamId, opponentTeamId: g.teamId }
+          : g,
+      ),
+      bets: d.bets.map((b) =>
+        b.gameId === gameId
+          ? { ...b, side: b.side === "give" ? "receive" : "give" }
+          : b,
+      ),
+    }));
+  }
+
   function updateGameResult(gameId, result) {
     updateDay((d) => ({
       ...d,
@@ -347,6 +374,16 @@ export default function DailyInputScreen({ back }) {
                                   </>
                                 )}
                               </span>
+                              {g.opponentTeamId && (
+                                <button
+                                  className="game-swap"
+                                  onClick={() => swapGameSides(g.id)}
+                                  aria-label="ハンデ出し側を入れ替え"
+                                  title="ハンデ出し側 ⇄ 対戦相手 入替"
+                                >
+                                  ⇄
+                                </button>
+                              )}
                               <button
                                 className="game-delete"
                                 onClick={() => setConfirmDeleteGame(g)}

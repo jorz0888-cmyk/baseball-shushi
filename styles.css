@@ -580,6 +580,24 @@ textarea:focus {
   color: var(--minus);
 }
 
+/* 出し側 ⇄ 対戦相手 入替ボタン。試合カラムヘッダの team 名表示と
+   × 削除ボタンの間に小さく配置。NPB の home/away がハンデ方向と
+   一致しないケースで使う。 */
+.game-swap {
+  background: transparent;
+  color: var(--ink-muted);
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 4px;
+  min-height: 24px;
+  border-radius: 4px;
+}
+
+.game-swap:hover {
+  background: rgba(45, 212, 160, 0.15);
+  color: var(--plus);
+}
+
 .handi-select {
   width: 100%;
   min-height: 32px;
