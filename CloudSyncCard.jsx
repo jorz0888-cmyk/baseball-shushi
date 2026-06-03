@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useCloudSync } from "./useCloudSync.js";
 import { generateSyncCode, normalizeSyncCode } from "./cloudSync.js";
+import ConfirmDialog from "./ConfirmDialog.jsx";
 
 /**
  * ホーム画面のクラウド同期カード。
