@@ -9,11 +9,11 @@ import {
   setStoredCode,
 } from "./cloudSync.js";
 
-// Upstash Free tier は 10,000 commands/日 が上限。30 秒間隔なら 2 端末
-// 合計で約 5,760 GET/日 + 編集の PUT 数十回で収まる。体感上の同期
-// 遅延は最大 30 秒だが、ユーザ操作の即時性を要求する用途ではないので
-// 受容可能。タイトな同期が要るユースケースなら短くする。
-const PULL_INTERVAL_MS = 30_000;
+// Upstash Free 30 MB tier の 10,000 commands/日 に余裕を持たせて 60 秒
+// ポーリング。2 端末で約 2,880 GET/日 + 編集の PUT 数十回。1日 3,000
+// commands 程度で済むので、複数ペアが同居しても枠内に収まる。
+// 編集の反映は最大 60 秒の遅延だが、家族間 2 台運用なら受容可能。
+const PULL_INTERVAL_MS = 60_000;
 const PUSH_DEBOUNCE_MS = 1_500;
 const LOCAL_POLL_MS = 1_500;
 
