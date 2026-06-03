@@ -1256,6 +1256,83 @@ html {
   background: rgba(240, 96, 93, 0.08);
 }
 
+/* ─── Cloud sync card ────────────────────────────────────────────────── */
+.sync-on {
+  background: var(--surface-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sync-on-row {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.sync-on-label {
+  color: var(--ink-muted);
+}
+
+.sync-code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--plus);
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.copied-tag {
+  background: var(--plus);
+  color: #0a0e17;
+  font-family: var(--font-jp, sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0;
+}
+
+.sync-status {
+  font-variant-numeric: tabular-nums;
+}
+
+.sync-start-btn {
+  width: 100%;
+  font-size: 14px;
+  min-height: 48px;
+}
+
+.sync-stop-btn {
+  width: 100%;
+  font-size: 14px;
+  min-height: 44px;
+}
+
+.sync-join-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.sync-join-row input {
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 18px;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
 /* ─── Monthly chart screen ───────────────────────────────────────────── */
 .month-nav {
   /* 共通の week-nav レイアウトを継承。固有の調整はここに */

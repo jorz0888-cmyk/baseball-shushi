@@ -15,6 +15,7 @@ import {
   clearAll,
 } from "./backup.js";
 import ConfirmDialog from "./ConfirmDialog.jsx";
+import CloudSyncCard from "./CloudSyncCard.jsx";
 
 /**
  * Top screen — week summary + nav to management / daily input
@@ -213,6 +214,8 @@ export default function Home({ goTo }) {
             </button>
           </div>
         </section>
+
+        <CloudSyncCard />
 
         <section className="card">
           <h2>データ管理</h2>
