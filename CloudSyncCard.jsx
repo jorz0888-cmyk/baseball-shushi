@@ -12,6 +12,7 @@ export default function CloudSyncCard() {
   const { code, status, lastSync, error, start, stop } = useCloudSync();
   const [inputCode, setInputCode] = useState("");
   const [copied, setCopied] = useState(false);
+  const [confirmStop, setConfirmStop] = useState(false);
 
   function copyCode() {
     if (!code || !navigator.clipboard) return;
@@ -82,7 +83,10 @@ export default function CloudSyncCard() {
             )}
             {error && <p className="error">同期エラー: {error}</p>}
           </div>
-          <button className="danger-outline sync-stop-btn" onClick={stop}>
+          <button
+            className="danger-outline sync-stop-btn"
+            onClick={() => setConfirmStop(true)}
+          >
             同期を停止
           </button>
           <p className="hint" style={{ margin: "8px 0 0", textAlign: "left" }}>
@@ -122,6 +126,18 @@ export default function CloudSyncCard() {
             </button>
           </div>
         </>
+      )}
+
+      {confirmStop && (
+        <ConfirmDialog
+          message={`クラウド同期を停止しますか？\n\nこの端末のデータは残りますが、別端末との自動同期は止まります。\n再開するには同じコードを入力してください。`}
+          confirmLabel="停止する"
+          onConfirm={() => {
+            stop();
+            setConfirmStop(false);
+          }}
+          onCancel={() => setConfirmStop(false)}
+        />
       )}
     </section>
   );
