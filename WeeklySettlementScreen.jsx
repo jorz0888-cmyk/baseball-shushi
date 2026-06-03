@@ -119,7 +119,7 @@ export default function WeeklySettlementScreen({ back }) {
                 </li>
               </ul>
               <p className="hint" style={{ textAlign: "left", margin: "8px 0 0" }}>
-                ※ プラス / マイナスは <strong>日単位</strong>（月〜日 各 row total の符号）で振り分け
+                ※ プラス / マイナスは <strong>セル単位</strong>（1 試合 1 セルの符号）で振り分け
               </p>
             </section>
 
@@ -230,11 +230,11 @@ function CustomerCard({ customer, settlement }) {
         <hr className="settlement-divider" />
 
         <div className="row">
-          <dt>プラス合計（日単位）</dt>
+          <dt>プラス合計（セル単位）</dt>
           <dd className="num"><Sn value={plusSum} /></dd>
         </div>
         <div className="row">
-          <dt>マイナス合計（日単位）</dt>
+          <dt>マイナス合計（セル単位）</dt>
           <dd className="num"><Sn value={minusSum} /></dd>
         </div>
 

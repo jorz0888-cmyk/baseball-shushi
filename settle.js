@@ -4,20 +4,20 @@
  * 1ユーザー 1週間分の確定値を、月〜日の row total から積み上げ、
  *  - 前半 (月火水) 小計
  *  - 後半 (木金土日) 小計
- *  - プラス合計 / マイナス合計（日単位の符号で分離）
+ *  - プラス合計 / マイナス合計（セル単位 = 1試合 1セルの符号で分離）
  *  - 2分有り合計  = プラス合計 × 0.92 + マイナス合計 × 0.98
  *  - 2分無し合計  = プラス合計 × 0.90 + マイナス合計 × 1.00（そのまま）
  *
- * 「プラスの合計 / マイナスの合計」の解釈は v2 仕様書では一義に定まら
- * ないため、ここでは **日単位** ── 1日 (=月〜日の各 row total) の符号で
- * 振り分ける方式を採用。理由: 仕様書ステップ4「週間合計 = 月〜日 7日
- * 分を合計」が日単位で集計するため、ステップ5の B収支式の入力も日単位
- * に揃えるのが自然。前半/後半 小計は「表示用」の見出しとして v2 仕様
- * 書に追加されたもので、B収支式の入力ではない。
+ * 「プラスの合計 / マイナスの合計」の単位は **セル単位** (= 1試合 1セル
+ * の確定値)。理由: B収支式は「1試合ずつ 2分計算 → 合算」の運用が正解で、
+ * 日合計レベルで先に正負相殺してから 2分を掛けると、混在日 (例: 巨人勝ち
+ * +10 / 阪神負け -5) のときに正しい値が出ない。
  *
- * もし B収支式が「セル単位」「半単位」など別の入力単位を期待している
- * 場合は、本ファイルの plusSum/minusSum の集計部分だけ差し替えれば
- * 精算ロジックは追従する。UI 側は値を消費するだけ。
+ *   日単位 (誤): (10 + -5) × 0.92 = 5 × 0.92 = +4.6
+ *   セル単位:    10 × 0.92 + (-5) × 0.98 = 9.2 - 4.9 = +4.3
+ *
+ * 前半/後半 小計と週合計は表示用なので、引き続き row total ベース
+ * (= 単純合算) で算出。B収支式が触るのは plusSum / minusSum のみ。
  */
 
 import { aggregateDay } from "./aggregate.js";
@@ -42,8 +42,8 @@ export { SETTLE_RATES };
  * @property {number} firstHalfSubtotal            — 前半 (月火水) 小計
  * @property {number} secondHalfSubtotal           — 後半 (木金土日) 小計
  * @property {number} weekTotal                    — 週間合計（単純合計）
- * @property {number} plusSum                      — 正の日の合計
- * @property {number} minusSum                     — 負の日の合計（負値）
+ * @property {number} plusSum                      — セル単位の正側合計（1試合=1セル）
+ * @property {number} minusSum                     — セル単位の負側合計（負値）
  * @property {number} with2bu                      — 2分有り合計
  * @property {number} without2bu                   — 2分無し合計
  * @property {number} bonus2bu                     — 2分だけ計算合計 (= with2bu − without2bu)
@@ -57,14 +57,30 @@ export { SETTLE_RATES };
 export function settleCustomer(weekData, customer) {
   /** @type {Record<string, number>} */
   const dailyTotals = {};
+  // セル単位の正負を週全体で累積する
+  let plusSum = 0;
+  let minusSum = 0;
+
   for (const dk of DAY_KEYS) {
     const day = weekData?.[dk];
     if (!day) {
       dailyTotals[dk] = 0;
       continue;
     }
-    const { rowTotals } = aggregateDay(day, [customer]);
+    const { rowTotals, cells } = aggregateDay(day, [customer]);
     dailyTotals[dk] = rowTotals[customer.id] ?? 0;
+
+    // 1試合 = 1セル単位で正負を集計
+    // 仕様: 「1試合ずつ計算を出さないとずれが出る」 — 日合計で先に
+    // 相殺してから 2分を掛けると混在日でズレるため、セル単位で
+    // 集計してから 2分式を適用する。
+    const customerCells = cells[customer.id] ?? {};
+    for (const gameId of Object.keys(customerCells)) {
+      const v = customerCells[gameId];
+      if (v == null) continue;
+      if (v > 0) plusSum += v;
+      else if (v < 0) minusSum += v;
+    }
   }
 
   const firstHalfSubtotal = FIRST_HALF_DAYS.reduce(
@@ -76,14 +92,6 @@ export function settleCustomer(weekData, customer) {
     0,
   );
   const weekTotal = firstHalfSubtotal + secondHalfSubtotal;
-
-  let plusSum = 0;
-  let minusSum = 0;
-  for (const dk of DAY_KEYS) {
-    const v = dailyTotals[dk];
-    if (v > 0) plusSum += v;
-    else if (v < 0) minusSum += v;
-  }
 
   const with2bu = apply2bu(plusSum, minusSum);
   const without2bu = applyNo2bu(plusSum, minusSum);

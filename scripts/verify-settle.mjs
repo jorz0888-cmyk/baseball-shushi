@@ -228,6 +228,67 @@ console.log("\n■ all negative: plusSum = 0");
   expectApprox(s.bonus2bu, -147 - -150, "bonus2bu = -147 − -150 = +3");
 }
 
+// ─── ★ user-reported: cell-level split within a single day ───────────────
+// 「火曜日 佐藤さん 巨人 10 当たり +9.2 / 阪神 -4.9 → 期待 +4.3」
+// 同日内に正負が混在するケースで「日単位」だと相殺してから 2分が
+// かかるため +4.6 になる。セル単位なら各試合に 2分がかかり +4.3。
+console.log("\n■ cell-level split: positive and negative in the same day");
+{
+  const customer = { id: "c1", name: "佐藤" };
+  // ハンデ 0 (スクラッチ) で
+  //   g1: 10pt 出 1点差勝ち → 丸勝ち = +10 (raw)
+  //   g2: 5pt  出 1点差負け → 丸負け = -5 (raw)
+  const week = {
+    monday: { games: [], bets: [] },
+    tuesday: {
+      games: [
+        {
+          id: "g1",
+          teamId: "t1",
+          handicap: "0",
+          result: { won: true, draw: false, scoreDiff: 1 },
+        },
+        {
+          id: "g2",
+          teamId: "t2",
+          handicap: "0",
+          result: { won: false, draw: false, scoreDiff: 1 },
+        },
+      ],
+      bets: [
+        { customerId: "c1", gameId: "g1", points: 10, side: "give" },
+        { customerId: "c1", gameId: "g2", points: 5, side: "give" },
+      ],
+    },
+    wednesday: { games: [], bets: [] },
+    thursday: { games: [], bets: [] },
+    friday: { games: [], bets: [] },
+    saturday: { games: [], bets: [] },
+    sunday: { games: [], bets: [] },
+  };
+  const s = settleCustomer(week, customer);
+  // 単純合算 (row total / week total)
+  expectApprox(s.dailyTotals.tuesday, 5, "Tue row total = +5 (raw sum)");
+  expectApprox(s.weekTotal, 5, "week total = +5");
+  // ★ セル単位の plus/minus
+  expectApprox(s.plusSum, 10, "plusSum = +10 (cell-level: 巨人 cell)");
+  expectApprox(s.minusSum, -5, "minusSum = -5 (cell-level: 阪神 cell)");
+  // 2分有り = +9.2 - 4.9 = +4.3
+  expectApprox(
+    s.with2bu,
+    10 * 0.92 + -5 * 0.98,
+    "with2bu = 10×0.92 + -5×0.98 = +4.3 (user-expected)",
+  );
+  // 2分無し = +9.0 - 5.0 = +4.0
+  expectApprox(
+    s.without2bu,
+    10 * 0.9 + -5 * 1.0,
+    "without2bu = 10×0.90 + -5×1.00 = +4.0",
+  );
+  // bonus = 4.3 - 4.0 = 0.3
+  expectApprox(s.bonus2bu, 0.3, "bonus2bu = +0.3");
+}
+
 // ─── settleAll: shape ────────────────────────────────────────────────────
 console.log("\n■ settleAll");
 {
