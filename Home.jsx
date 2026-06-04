@@ -35,19 +35,21 @@ export default function Home({ goTo }) {
   );
 
   // お店視点: 全ユーザーの合算を符号反転（ユーザーの勝ち = 店の負け）
+  // 週合計列は B収支式(2分有り) を適用した値を使う。サーバー側で各ユーザー
+  // ごとに with2bu = plusSum×0.92 + minusSum×0.98 が計算済みなので合算して反転。
   const shopRow = useMemo(() => {
     let plus = 0;
     let minus = 0;
-    let total = 0;
+    let with2bu = 0;
     for (const { settlement } of settled) {
       plus += settlement.plusSum;
       minus += settlement.minusSum;
-      total += settlement.weekTotal;
+      with2bu += settlement.with2bu;
     }
     return {
       shopPlus: -minus,
       shopMinus: -plus,
-      shopTotal: -total,
+      shopWith2bu: -with2bu,
     };
   }, [settled]);
 
@@ -106,20 +108,23 @@ export default function Home({ goTo }) {
                   <th>ユーザー名</th>
                   <th className="num">＋合計</th>
                   <th className="num">−合計</th>
-                  <th className="num">週合計</th>
+                  <th className="num">週合計<div className="th-sub">2分有り</div></th>
                 </tr>
               </thead>
               <tbody>
                 {settled.map(({ customer, settlement }) => {
-                  const { plusSum, minusSum, weekTotal } = settlement;
+                  // 週合計列は B収支式(2分有り) を適用した値を表示する。
+                  // 計算は settleCustomer 内でセル単位の正負分離後に
+                  // plusSum × 0.92 + minusSum × 0.98 で算出済み。
+                  const { plusSum, minusSum, with2bu } = settlement;
                   const totalCls =
-                    weekTotal > 0
+                    with2bu > 0
                       ? "plus"
-                      : weekTotal < 0
+                      : with2bu < 0
                         ? "minus"
                         : "neutral";
                   const totalSign =
-                    weekTotal > 0 ? "+" : weekTotal < 0 ? "−" : "±";
+                    with2bu > 0 ? "+" : with2bu < 0 ? "−" : "±";
                   return (
                     <tr key={customer.id}>
                       <td>{customer.name}</td>
@@ -132,9 +137,9 @@ export default function Home({ goTo }) {
                           : "0"}
                       </td>
                       <td className={`num ${totalCls}`}>
-                        {weekTotal === 0
+                        {with2bu === 0
                           ? "±0"
-                          : `${totalSign}${fmtPoints(Math.abs(weekTotal))}`}
+                          : `${totalSign}${fmtPoints(Math.abs(with2bu))}`}
                       </td>
                     </tr>
                   );
@@ -155,17 +160,17 @@ export default function Home({ goTo }) {
                   </td>
                   <td
                     className={`num ${
-                      shopRow.shopTotal > 0
+                      shopRow.shopWith2bu > 0
                         ? "plus"
-                        : shopRow.shopTotal < 0
+                        : shopRow.shopWith2bu < 0
                           ? "minus"
                           : "neutral"
                     }`}
                   >
-                    {shopRow.shopTotal === 0
+                    {shopRow.shopWith2bu === 0
                       ? "±0"
-                      : `${shopRow.shopTotal > 0 ? "+" : "−"}${fmtPoints(
-                          Math.abs(shopRow.shopTotal),
+                      : `${shopRow.shopWith2bu > 0 ? "+" : "−"}${fmtPoints(
+                          Math.abs(shopRow.shopWith2bu),
                         )}`}
                   </td>
                 </tr>
@@ -173,6 +178,7 @@ export default function Home({ goTo }) {
             </table>
           )}
           <p className="hint" style={{ textAlign: "left", margin: "12px 0 0" }}>
+            ※ 週合計は B収支式（2分有り：プラス × 0.92 + マイナス × 0.98）で算出<br />
             ※ 試合結果が未入力の試合は週間合計に含まれません<br />
             ※ お店行はユーザー全員の合算を反転（ユーザーの勝ち = 店の負け）
           </p>
