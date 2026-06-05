@@ -110,8 +110,48 @@ export default async function handler(req, res) {
       if (!body || typeof body !== "object") {
         return res.status(400).json({ error: "Body must be a JSON object" });
       }
+
+      // CAS（compare-and-swap）—— クライアントが「自分が知っている最後の
+      // cloudUpdatedAt」を expectedCloudUpdatedAt に入れて送ってくる。
+      // サーバー側の現在値と不一致なら 409 を返し、最新の cloud を body に
+      // 含めて返す。クライアントはマージして再 PUT する。
+      // 旧クライアント（CAS 非対応）からの PUT は expectedCloudUpdatedAt
+      // を送ってこないので、CAS チェックを skip して既存通り受け入れる
+      // （後方互換）。
+      stage = "cas-check";
+      const expectedCloudUpdatedAt =
+        body.expectedCloudUpdatedAt === undefined
+          ? undefined
+          : body.expectedCloudUpdatedAt; // null も "未同期" の意味で有効
+      // 送られてきた expectedCloudUpdatedAt は保存対象から除く
+      const { expectedCloudUpdatedAt: _omit, ...payload } = body;
+
+      if (expectedCloudUpdatedAt !== undefined) {
+        const existingRaw = await client.get(key);
+        if (existingRaw) {
+          try {
+            const existing = JSON.parse(existingRaw);
+            const serverCloudUpdatedAt = existing?.cloudUpdatedAt ?? null;
+            // 一致しなければ衝突。クライアントが知らない更新が cloud にある。
+            if (serverCloudUpdatedAt !== expectedCloudUpdatedAt) {
+              return res.status(409).json({
+                error: "Conflict — cloud was updated by another client",
+                expected: expectedCloudUpdatedAt,
+                actual: serverCloudUpdatedAt,
+                current: existing,
+              });
+            }
+          } catch {
+            // 既存値が壊れていたら CAS は通せないが、上書き許容で先に進める
+          }
+        } else if (expectedCloudUpdatedAt !== null) {
+          // クライアントは「以前 push 済み」のつもりだが cloud に何もない
+          // (TTL 切れ / 削除など)。素直に新規 push として受け入れる。
+        }
+      }
+
       stage = "serialize";
-      const stored = { ...body, cloudUpdatedAt: new Date().toISOString() };
+      const stored = { ...payload, cloudUpdatedAt: new Date().toISOString() };
       const serialized = JSON.stringify(stored);
       const size = new TextEncoder().encode(serialized).length;
       if (size > MAX_BODY_BYTES) {

@@ -1,5 +1,5 @@
 /**
- * クラウド同期 ── 同期コード方式。
+ * クラウド同期 ── 同期コード方式 + CAS + 並行編集マージ。
  *
  * 両端末で同じコード (例: "ABC-234") を入力すると、その KV キーに
  * アプリ状態が読み書きされる。認証なし、コードを知っている人だけが
@@ -7,15 +7,26 @@
  *
  * 仕組み:
  *   - PUT は localStorage 変更を 1 秒 debounce してから API に送る
- *   - GET は 10 秒ごとにポーリング。reply の cloudUpdatedAt が
- *     ローカルの最終 push 時刻より新しければ取り込み + リロード
- *   - 競合解決は last-write-wins (シンプル)
+ *   - PUT のたびに `expectedCloudUpdatedAt` を添える（CAS）
+ *   - サーバーが現在の cloudUpdatedAt と不一致なら 409 を返し、
+ *     現状の cloud を body に含める
+ *   - クライアントは local-wins でマージしてから retry（自分の編集を
+ *     保ったまま、相手の追加もちゃんと取り込む）
+ *   - GET は 60 秒ごとにポーリング。reply の cloudUpdatedAt が
+ *     ローカルの最終 push 時刻より新しければ remote-wins でマージ
+ *     してから reload
+ *
+ * 旧仕様（last-write-wins on 全状態）では、両端末が pull 待ち窓
+ * （最大 60 秒）で並行編集すると、後から push した側が前の push を
+ * **まるごと** 上書きして「試合 / 数字が消える」事故が起きていた。
+ * 今は per-record 和集合マージ + CAS で、追加は絶対に失われない。
  *
  * オフライン / API 不達時はサイレントに skip。次回成功時に最新で
  * 上書きする (localStorage は常にローカルの真実)。
  */
 
 import { exportAll, applyBackup } from "./backup.js";
+import { mergeData } from "./mergeState.js";
 
 const CODE_KEY = "bb-calc-sync-code";
 const LAST_PUSH_KEY = "bb-calc-sync-last-push";
@@ -63,30 +74,78 @@ export function getLastPushTime() {
   return raw ? new Date(raw) : null;
 }
 
+function getLastPushIso() {
+  return localStorage.getItem(LAST_PUSH_KEY);
+}
+
 function recordLastPush(iso) {
   localStorage.setItem(LAST_PUSH_KEY, iso);
 }
 
 /**
  * ローカルデータをクラウドに PUT。
+ *
+ * CAS (expectedCloudUpdatedAt) 付き。サーバー側の現在値と不一致なら
+ * 409 が返ってくるので、サーバーが返した現状値とローカルを local-wins
+ * でマージし、新しい expected で retry する。
+ *
  * @param {string} code  — "ABC-234"
- * @returns {Promise<{cloudUpdatedAt: string}>}
+ * @param {{maxRetries?: number}} [options]
+ * @returns {Promise<{ok:true, cloudUpdatedAt:string}>}
  */
-export async function pushToCloud(code) {
-  const payload = exportAll();
-  const res = await fetch(`/api/sync/${code}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    throw new Error(`Push failed: HTTP ${res.status}`);
+export async function pushToCloud(code, options = {}) {
+  const maxRetries = options.maxRetries ?? 3;
+  let lastErr = null;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const localSnapshot = exportAll();
+    const expected = getLastPushIso(); // null = 初回 / 未同期
+
+    const res = await fetch(`/api/sync/${code}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...localSnapshot,
+        expectedCloudUpdatedAt: expected,
+      }),
+    });
+
+    if (res.status === 409) {
+      // 他端末が我々の last-known cloudUpdatedAt より後に push 済み。
+      // サーバーが返した current cloud を取得、local-wins でマージして
+      // 新しい expected で retry。
+      let reply = null;
+      try {
+        reply = await res.json();
+      } catch {
+        // 形式不正は致命的、retry してもムダ
+        throw new Error("Push 409 reply was not valid JSON");
+      }
+      const cloud = reply?.current;
+      if (cloud?.data) {
+        const merged = mergeData(cloud.data, localSnapshot.data); // local wins
+        applyBackup({ data: merged }); // localStorage に書き戻す
+        if (cloud.cloudUpdatedAt) recordLastPush(cloud.cloudUpdatedAt);
+      } else {
+        // current が無い 409 はおかしいが、念のため expected を消して retry
+        localStorage.removeItem(LAST_PUSH_KEY);
+      }
+      lastErr = new Error(`CAS conflict (attempt ${attempt + 1})`);
+      continue;
+    }
+
+    if (!res.ok) {
+      throw new Error(`Push failed: HTTP ${res.status}`);
+    }
+    const reply = await res.json();
+    if (reply?.cloudUpdatedAt) {
+      recordLastPush(reply.cloudUpdatedAt);
+    }
+    return reply;
   }
-  const reply = await res.json();
-  if (reply?.cloudUpdatedAt) {
-    recordLastPush(reply.cloudUpdatedAt);
-  }
-  return reply;
+
+  // ここに到達 = 連続で 409 が続いた。レアケース。
+  throw lastErr ?? new Error("Push failed: too many CAS conflicts");
 }
 
 /**
@@ -113,12 +172,21 @@ export function shouldApplyRemote(remote) {
 }
 
 /**
- * クラウドのデータを localStorage に書き戻し、最終 push 時刻も
- * クラウドの cloudUpdatedAt に揃える (次の pull で自分が apply
- * しないように)。
+ * クラウドのデータを localStorage に書き戻す。
+ *
+ * 旧仕様では applyBackup(remote) で wholesale 置換していたが、それだと
+ * ローカルが last push 後に追加したレコード (まだ push できていない
+ * 試合 / ベット) を消してしまう。今は remote-wins で deep merge し、
+ * ローカル追加は保ったまま remote の編集を取り込む。
+ *
+ * 最終 push 時刻は remote.cloudUpdatedAt に揃える (次の pull で自分が
+ * 再度 apply しないため)。
  */
 export function applyRemote(remote) {
-  applyBackup(remote);
+  if (!remote?.data) return;
+  const local = exportAll();
+  const merged = mergeData(local.data, remote.data); // remote wins
+  applyBackup({ data: merged });
   if (remote.cloudUpdatedAt) {
     recordLastPush(remote.cloudUpdatedAt);
   }
