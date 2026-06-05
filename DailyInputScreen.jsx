@@ -118,7 +118,20 @@ export default function DailyInputScreen({ back }) {
       ...d,
       games: d.games.map((g) =>
         g.id === gameId
-          ? { ...g, teamId: g.opponentTeamId, opponentTeamId: g.teamId }
+          ? {
+              ...g,
+              teamId: g.opponentTeamId,
+              opponentTeamId: g.teamId,
+              // 出し側が反転するので、出し側視点の勝敗 (result.won) も反転。
+              // 例: 「巨人が出し側で勝ち」→ 阪神を出し側にすると「阪神が負け」
+              // 引分はそのまま（左右関係なく引分）。
+              // result が未入力 (null) のときは触らない。
+              result: g.result
+                ? g.result.draw
+                  ? g.result
+                  : { ...g.result, won: !g.result.won }
+                : g.result,
+            }
           : g,
       ),
       bets: d.bets.map((b) =>

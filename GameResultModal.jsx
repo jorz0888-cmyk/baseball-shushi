@@ -52,7 +52,16 @@ export default function GameResultModal({
   }
 
   return (
-    <div className="modal-backdrop" onClick={onCancel}>
+    // バックドロップ click は target が背景そのもの (= currentTarget) のときだけ
+    // onCancel する。タップ位置がドリフトして input 上の click が backdrop に
+    // 来てもモーダルを閉じないようにする保険 (内側 div の stopPropagation と
+    // 併用)。スマホで「点差をタップしたら画面がバックする」現象の対策。
+    <div
+      className="modal-backdrop"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onCancel();
+      }}
+    >
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <p className="modal-message">
           <strong>{teamName}</strong>
@@ -96,25 +105,33 @@ export default function GameResultModal({
         {outcome !== "draw" && (
           <div className="score-diff">
             <label>点差</label>
+            {/* iOS の type=number ピッカーが「タップ→キーボード→スクロール
+                →click が backdrop に届く」みたいな副作用を起こすことがあるので
+                type=text + inputMode=numeric にしてテンキー表示だけ確保する。
+                pattern は iOS でテンキー表示を確実にするためのおまじない。 */}
             <input
-              type="number"
+              type="text"
               inputMode="numeric"
-              min="1"
-              max="99"
+              pattern="[0-9]*"
+              maxLength={2}
               value={scoreDiffStr}
-              onChange={(e) => setScoreDiffStr(e.target.value)}
+              onChange={(e) =>
+                setScoreDiffStr(e.target.value.replace(/[^0-9]/g, ""))
+              }
             />
             <span className="neutral">点</span>
           </div>
         )}
 
         <div className="modal-buttons">
-          {initial && onClear ? (
+          {/* キャンセルは常に表示。既存結果の編集中は 結果クリア も別ボタンで
+              出す。旧仕様だと「編集中はキャンセルが消える」という地味に困る
+              UX だった (スマホで誤タップ閉じてもやり直せない)。 */}
+          <button onClick={onCancel}>キャンセル</button>
+          {initial && onClear && (
             <button className="danger-outline" onClick={onClear}>
               結果クリア
             </button>
-          ) : (
-            <button onClick={onCancel}>キャンセル</button>
           )}
           <button className="primary" onClick={save}>
             保存

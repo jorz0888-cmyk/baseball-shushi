@@ -35,9 +35,17 @@ function unionById(a = [], b = []) {
   return [...out.values()];
 }
 
-/** bet の合成キー。id 相当として扱う。 */
+/**
+ * bet の合成キー。
+ *
+ * (customerId, gameId) だけで unique 扱いにする。side を入れていた旧仕様だと、
+ * A 端末で swap してベットの side を反転 → cloud 経由で B 端末にマージするとき、
+ * 「同じ (customer, game) なのに side が違うので別物」と判定され、bets 配列に
+ * 同じ試合・同じ人のベットが 2 個並ぶ事故が起きた。1 試合につき 1 人 1 ベット
+ * という業務ルールに合わせて side を key から外す。
+ */
 function betKey(bet) {
-  return `${bet?.customerId ?? ""}|${bet?.gameId ?? ""}|${bet?.side ?? ""}`;
+  return `${bet?.customerId ?? ""}|${bet?.gameId ?? ""}`;
 }
 
 function unionBets(a = [], b = []) {

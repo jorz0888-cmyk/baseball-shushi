@@ -24,7 +24,15 @@ export default function ConfirmDialog({
   }, [onCancel]);
 
   return (
-    <div className="modal-backdrop" onClick={onCancel} role="dialog">
+    // バックドロップは target が背景そのものの時だけ閉じる。タップ位置が
+    // ずれて子要素からのバブルで誤って閉じるのを防止。
+    <div
+      className="modal-backdrop"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onCancel();
+      }}
+      role="dialog"
+    >
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <p className="modal-message">{message}</p>
         <div className="modal-buttons">
