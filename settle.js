@@ -40,13 +40,15 @@ export { SETTLE_RATES };
  * @typedef {Object} CustomerSettlement
  * @property {Record<string, number>} dailyTotals             — DAY_KEY -> row total (単純合計)
  * @property {Record<string, number>} dailyCumulativeNo2bu    — DAY_KEY -> その日までの累計 (2分無し適用)
- * @property {number} firstHalfSubtotal            — 前半 (月火水) 小計
- * @property {number} secondHalfSubtotal           — 後半 (木金土日) 小計
- * @property {number} weekTotal                    — 週間合計（単純合計）
+ * @property {number} firstHalfSubtotal            — 前半 (月火水) 小計 (raw simple sum、後方互換)
+ * @property {number} secondHalfSubtotal           — 後半 (木金土日) 小計 (raw simple sum、後方互換)
+ * @property {number} firstHalfSubtotalNo2bu       — 前半 (月火水) 小計 (2分無し適用)
+ * @property {number} secondHalfSubtotalNo2bu      — 後半 (木金土日) 小計 (2分無し適用)
+ * @property {number} weekTotal                    — 週間合計（単純合計、後方互換）
  * @property {number} plusSum                      — セル単位の正側合計（1試合=1セル）
  * @property {number} minusSum                     — セル単位の負側合計（負値）
  * @property {number} with2bu                      — 2分有り合計
- * @property {number} without2bu                   — 2分無し合計
+ * @property {number} without2bu                   — 2分無し合計 (= 週合計の新仕様)
  * @property {number} bonus2bu                     — 2分だけ計算合計 (= with2bu − without2bu)
  */
 
@@ -66,8 +68,15 @@ export function settleCustomer(weekData, customer) {
   // 曜日表示用に「その日までの」累計を別途持つ
   let cumPlus = 0;
   let cumMinus = 0;
+  // 前半 (月火水) / 後半 (木金土日) の plus/minus を別計上。
+  // 半期小計に 2分無し式を適用するために必要。
+  let firstHalfPlus = 0;
+  let firstHalfMinus = 0;
+  let secondHalfPlus = 0;
+  let secondHalfMinus = 0;
 
   for (const dk of DAY_KEYS) {
+    const isFirstHalf = FIRST_HALF_DAYS.includes(dk);
     const day = weekData?.[dk];
     if (!day) {
       dailyTotals[dk] = 0;
@@ -89,9 +98,13 @@ export function settleCustomer(weekData, customer) {
       if (v > 0) {
         plusSum += v;
         cumPlus += v;
+        if (isFirstHalf) firstHalfPlus += v;
+        else secondHalfPlus += v;
       } else if (v < 0) {
         minusSum += v;
         cumMinus += v;
+        if (isFirstHalf) firstHalfMinus += v;
+        else secondHalfMinus += v;
       }
     }
 
@@ -100,6 +113,8 @@ export function settleCustomer(weekData, customer) {
     dailyCumulativeNo2bu[dk] = applyNo2bu(cumPlus, cumMinus);
   }
 
+  // 後方互換のため raw 単純合計の小計/週合計も計算しておく。表示側は基本的に
+  // 2分無し版 (firstHalfSubtotalNo2bu / without2bu) を使う。
   const firstHalfSubtotal = FIRST_HALF_DAYS.reduce(
     (s, d) => s + dailyTotals[d],
     0,
@@ -109,6 +124,12 @@ export function settleCustomer(weekData, customer) {
     0,
   );
   const weekTotal = firstHalfSubtotal + secondHalfSubtotal;
+
+  // 半期それぞれに 2分無し式を適用。線形性により
+  //   firstHalfSubtotalNo2bu + secondHalfSubtotalNo2bu === without2bu
+  // が常に成り立つ。
+  const firstHalfSubtotalNo2bu = applyNo2bu(firstHalfPlus, firstHalfMinus);
+  const secondHalfSubtotalNo2bu = applyNo2bu(secondHalfPlus, secondHalfMinus);
 
   const with2bu = apply2bu(plusSum, minusSum);
   const without2bu = applyNo2bu(plusSum, minusSum);
@@ -122,6 +143,8 @@ export function settleCustomer(weekData, customer) {
     dailyCumulativeNo2bu,
     firstHalfSubtotal,
     secondHalfSubtotal,
+    firstHalfSubtotalNo2bu,
+    secondHalfSubtotalNo2bu,
     weekTotal,
     plusSum,
     minusSum,

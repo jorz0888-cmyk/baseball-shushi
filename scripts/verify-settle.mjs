@@ -146,9 +146,26 @@ console.log("\n■ worked example: 1 customer, mixed days");
   expectApprox(s.dailyCumulativeNo2bu.wednesday, 13, "cumNo2bu wed = +13 (no change)");
   expectApprox(s.dailyCumulativeNo2bu.thursday, -37, "cumNo2bu thu = 63-100 = -37");
   expectApprox(s.dailyCumulativeNo2bu.sunday, -37, "cumNo2bu sun = without2bu");
-  expectApprox(s.firstHalfSubtotal, 20, "前半 (月火水) = +20");
-  expectApprox(s.secondHalfSubtotal, -50, "後半 (木金土日) = -50");
-  expectApprox(s.weekTotal, -30, "週合計 = -30");
+  expectApprox(s.firstHalfSubtotal, 20, "前半 (月火水) = +20 (raw)");
+  expectApprox(s.secondHalfSubtotal, -50, "後半 (木金土日) = -50 (raw)");
+  expectApprox(s.weekTotal, -30, "週合計 = -30 (raw)");
+  // 2分無し半期小計: 前半 plus=70 (火) minus=-50 (月)、後半 plus=0 minus=-50 (木)
+  expectApprox(
+    s.firstHalfSubtotalNo2bu,
+    70 * 0.9 + -50 * 1.0,
+    "前半 (2分無し) = 70×0.9 + -50×1.0 = +13",
+  );
+  expectApprox(
+    s.secondHalfSubtotalNo2bu,
+    0 * 0.9 + -50 * 1.0,
+    "後半 (2分無し) = -50",
+  );
+  // 線形性: 前半 (2分無し) + 後半 (2分無し) === without2bu
+  expectApprox(
+    s.firstHalfSubtotalNo2bu + s.secondHalfSubtotalNo2bu,
+    s.without2bu,
+    "前半 + 後半 (2分無し) === without2bu",
+  );
   expectApprox(s.plusSum, 70, "plusSum = +70 (Tue only)");
   expectApprox(s.minusSum, -100, "minusSum = -100 (Mon -50 + Thu -50)");
   expectApprox(

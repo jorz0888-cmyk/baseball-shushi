@@ -132,16 +132,11 @@ export default function WeeklySettlementScreen({ back }) {
                 ユーザー全員の合算を反転 ── ユーザーの勝ちが店の負け、ユーザーの負けが店の勝ち
               </p>
               <dl className="settlement-rows">
+                {/* お店の週合計も 2分無しを基準にする (= 個別ユーザの without2bu を全部足して反転) */}
                 <div className="row row-strong">
-                  <dt>週合計</dt>
+                  <dt>週合計（2分無し）</dt>
                   <dd className="num">
-                    <Sn value={shopSummary.weekTotal} strong />
-                  </dd>
-                </div>
-                <div className="row row-big">
-                  <dt>2分無し合計</dt>
-                  <dd className="num">
-                    <SnBig value={shopSummary.without2bu} fixedColor="orange" />
+                    <Sn value={shopSummary.without2bu} strong />
                   </dd>
                 </div>
                 <div className="row row-big">
@@ -151,7 +146,7 @@ export default function WeeklySettlementScreen({ back }) {
                   </dd>
                 </div>
                 <div className="row row-big">
-                  <dt>2分無し + 2分 合計</dt>
+                  <dt>2分有り合計</dt>
                   <dd className="num">
                     <SnBig value={shopSummary.with2bu} />
                   </dd>
@@ -175,11 +170,9 @@ export default function WeeklySettlementScreen({ back }) {
 
 function CustomerCard({ customer, settlement }) {
   const {
-    dailyTotals,
     dailyCumulativeNo2bu,
-    firstHalfSubtotal,
-    secondHalfSubtotal,
-    weekTotal,
+    firstHalfSubtotalNo2bu,
+    secondHalfSubtotalNo2bu,
     plusSum,
     minusSum,
     with2bu,
@@ -214,43 +207,39 @@ function CustomerCard({ customer, settlement }) {
       </table>
 
       <dl className="settlement-rows">
+        {/* 小計 / 週合計 すべて 2分無し (+×0.90 / −×1.00) で算出。
+            線形性から  前半 + 後半 === 週合計 (= without2bu) が成り立つ。 */}
         <div className="row">
           <dt>
             前半 ({FIRST_HALF_DAYS.map((d, i) => DAY_LABELS_JP[i]).join("")}) 小計
           </dt>
-          <dd className="num"><Sn value={firstHalfSubtotal} /></dd>
+          <dd className="num"><Sn value={firstHalfSubtotalNo2bu} /></dd>
         </div>
         <div className="row">
           <dt>
             後半 ({SECOND_HALF_DAYS.map((d, i) => DAY_LABELS_JP[3 + i]).join("")}) 小計
           </dt>
-          <dd className="num"><Sn value={secondHalfSubtotal} /></dd>
+          <dd className="num"><Sn value={secondHalfSubtotalNo2bu} /></dd>
         </div>
         <div className="row row-strong">
-          <dt>週合計</dt>
-          <dd className="num"><Sn value={weekTotal} strong /></dd>
+          <dt>週合計（2分無し）</dt>
+          <dd className="num"><Sn value={without2bu} strong /></dd>
         </div>
 
         <hr className="settlement-divider" />
 
         <div className="row">
-          <dt>プラス合計（セル単位）</dt>
+          <dt>プラス合計（セル単位 / raw）</dt>
           <dd className="num"><Sn value={plusSum} /></dd>
         </div>
         <div className="row">
-          <dt>マイナス合計（セル単位）</dt>
+          <dt>マイナス合計（セル単位 / raw）</dt>
           <dd className="num"><Sn value={minusSum} /></dd>
         </div>
 
         <hr className="settlement-divider" />
 
-        <div className="row row-big">
-          <dt>2分無し合計</dt>
-          <dd className="num">
-            {/* 仕様: 常にオレンジ（プラスでもマイナスでも） */}
-            <SnBig value={without2bu} fixedColor="orange" />
-          </dd>
-        </div>
+        {/* 比較用: 2分有り合計と、その差分 (= 2分だけ取り分) を併記 */}
         <div className="row row-big">
           <dt>2分だけ計算合計</dt>
           <dd className="num">
@@ -259,9 +248,9 @@ function CustomerCard({ customer, settlement }) {
           </dd>
         </div>
         <div className="row row-big">
-          <dt>2分無し + 2分 合計</dt>
+          <dt>2分有り合計</dt>
           <dd className="num">
-            {/* 数学的に 2分有り合計と等価 */}
+            {/* 数学的に 2分無し + 2分 と等価 */}
             <SnBig value={with2bu} />
           </dd>
         </div>
