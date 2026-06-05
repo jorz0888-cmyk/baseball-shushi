@@ -81,9 +81,12 @@ export default function Home({ goTo }) {
     window.location.reload();
   }
 
-  function handleClearAll() {
-    clearAll();
-    // 復元と同じ理由でリロード ── hook の値を初期状態に戻すため。
+  async function handleClearAll() {
+    // clearAll は localStorage に加えて Cache API / Service Worker も
+    // 掃除するので await が必要（スマホで「キャッシュクリアが面倒」の
+    // 対策）。終わってから reload で hook の値を初期状態に戻し、
+    // 同時に新しい SW が install されて最新コードが取得される。
+    await clearAll();
     window.location.reload();
   }
 
@@ -273,7 +276,8 @@ export default function Home({ goTo }) {
             全データをクリア
           </button>
           <p className="hint" style={{ margin: "8px 0 0", textAlign: "center" }}>
-            ユーザー / チーム / 全週の入力データを端末から完全に削除します
+            ユーザー / チーム / 全週の入力データを端末から完全に削除します<br />
+            （アプリのキャッシュも一緒に消えるので、次回起動で最新版が取得されます）
           </p>
         </section>
       </main>

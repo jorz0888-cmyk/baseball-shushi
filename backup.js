@@ -131,13 +131,49 @@ export function applyBackup(backup) {
 
 /**
  * BACKUP_KEYS で管理している全てのデータを localStorage から削除する。
+ * 同時に、PWA Service Worker のキャッシュも掃除して、次回ロード時に
+ * 最新のクライアントコードがネットワークから取得されるようにする。
+ * 「スマホでブラウザのキャッシュクリアを手動でやるのが面倒」という
+ * 実運用要件を吸収する。
+ *
  * 呼び出し側で確認ダイアログを出してから実行すること。実行後は
  * useLocalStorage hook の値を再初期化するため window.location.reload()
  * が必要。
+ *
+ * @returns {Promise<void>}
  */
-export function clearAll() {
+export async function clearAll() {
+  // 1) アプリ管理の localStorage キー
   for (const key of BACKUP_KEYS) {
     localStorage.removeItem(key);
+  }
+
+  // 2) sessionStorage（あれば）
+  try {
+    sessionStorage.clear();
+  } catch {
+    // private mode / disabled storage は黙って無視
+  }
+
+  // 3) Cache API（PWA Service Worker が握っているシェル/バンドル）
+  if (typeof caches !== "undefined") {
+    try {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    } catch {
+      // キャッシュ削除失敗は致命的ではない（次回 SW で揃え直す）
+    }
+  }
+
+  // 4) Service Worker を unregister。次回ロードで sw.js が新規取得され、
+  //    install→activate で最新キャッシュが作り直される。
+  if (typeof navigator !== "undefined" && navigator.serviceWorker) {
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map((r) => r.unregister()));
+    } catch {
+      // ブラウザ未対応 / 失敗時は黙って無視
+    }
   }
 }
 
