@@ -13,10 +13,16 @@ import {
  * シリアライズ済み snapshot 用ヘルパ。pull 中にローカルが変わっていないか
  * 判定するために使う。JSON.stringify は同じデータなら（同じブラウザ内では）
  * 同じ文字列を返すという挙動に依拠した素朴な等価判定。
+ *
+ * ★ exportAll() の戻り値全体ではなく .data だけを取る点に注意。
+ * exportAll() は呼び出すたび新しい exportedAt (ISO 文字列) を含むため、
+ * そのまま stringify すると preSnapshot と postSnapshot が必ず変わって
+ * 「ローカルが変わった」と誤判定 → apply 永久スキップ → 60 秒自動同期が
+ * 効かなくなる。比較対象は実データ部分だけ。
  */
 function snapshotKey() {
   try {
-    return JSON.stringify(exportAll());
+    return JSON.stringify(exportAll().data);
   } catch {
     return null;
   }
