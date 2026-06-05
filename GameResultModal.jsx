@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 
 /**
@@ -43,19 +43,65 @@ export default function GameResultModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [onCancel]);
 
-  // モーダル開いてる間は body スクロールをロック。
-  // iOS Safari は input フォーカスで「焦点を見える位置へ自動スクロール」を
-  // やるが、その副作用で fixed の modal がずれて、結果的にタップ位置と
-  // 実際のクリックターゲットが食い違って「点差をタップしたら背景に当たって
-  // モーダルが閉じる/画面が戻る」事故が起きていた。ロックでこれを抑える。
+  // ★ 本命修正: iOS Safari の position:fixed + virtual keyboard 互換問題。
+  //
+  // iOS でソフトキーボードが開くと「視覚ビューポート」だけ縮み、「レイアウト
+  // ビューポート」はそのまま。`position: fixed; inset: 0` はレイアウト基準
+  // なので、見た目では中央にあるモーダルが、当たり判定的には画面上端に
+  // 貼り付いたまま → ユーザのタップ座標は実際にはモーダルの「下にあるはず
+  // の場所」=日別入力グリッドや戻るボタンに当たる。「背景をずらすと直る」
+  // 現象はこのズレの大きさが変わるため。
+  //
+  // 対策: visualViewport API で本当に見えている領域に backdrop を毎フレーム
+  // 追従させる。これで当たり判定と見た目が一致する。
+  const backdropRef = useRef(null);
   useEffect(() => {
-    const prevOverflow = document.body.style.overflow;
-    const prevPosition = document.body.style.position;
-    document.body.style.overflow = "hidden";
-    document.body.style.position = "relative"; // iOS でスクロール抑止の保険
+    const vv = window.visualViewport;
+    if (!vv) return;
+    function adjust() {
+      const el = backdropRef.current;
+      if (!el) return;
+      el.style.top = `${vv.offsetTop}px`;
+      el.style.left = `${vv.offsetLeft}px`;
+      el.style.width = `${vv.width}px`;
+      el.style.height = `${vv.height}px`;
+    }
+    adjust();
+    vv.addEventListener("resize", adjust);
+    vv.addEventListener("scroll", adjust);
     return () => {
-      document.body.style.overflow = prevOverflow;
-      document.body.style.position = prevPosition;
+      vv.removeEventListener("resize", adjust);
+      vv.removeEventListener("scroll", adjust);
+    };
+  }, []);
+
+  // 加えて iOS 流の body スクロールロック (overflow:hidden だけだと iOS は
+  // 効かないので position:fixed + top:-scrollY のトリックを使う)。これで
+  // ユーザがモーダル裏の背景を引きずって動かせなくなる。
+  useEffect(() => {
+    const scrollY = window.scrollY;
+    const prev = {
+      overflow: document.body.style.overflow,
+      position: document.body.style.position,
+      top: document.body.style.top,
+      left: document.body.style.left,
+      right: document.body.style.right,
+      width: document.body.style.width,
+    };
+    document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    document.body.style.width = "100%";
+    return () => {
+      document.body.style.overflow = prev.overflow;
+      document.body.style.position = prev.position;
+      document.body.style.top = prev.top;
+      document.body.style.left = prev.left;
+      document.body.style.right = prev.right;
+      document.body.style.width = prev.width;
+      window.scrollTo(0, scrollY);
     };
   }, []);
 
@@ -79,6 +125,7 @@ export default function GameResultModal({
     // 来てもモーダルを閉じないようにする保険 (内側 div の stopPropagation と
     // 併用)。スマホで「点差をタップしたら画面がバックする」現象の対策。
     <div
+      ref={backdropRef}
       className="modal-backdrop"
       onClick={(e) => {
         if (e.target === e.currentTarget) onCancel();

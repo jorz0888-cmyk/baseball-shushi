@@ -390,7 +390,12 @@ textarea:focus {
 /* Modal confirm dialog */
 .modal-backdrop {
   position: fixed;
-  inset: 0;
+  /* inset:0 だと iOS で visualViewport とずれるので、初期値だけ全画面に
+     しておいて、JS の visualViewport API で実寸を毎フレーム上書きする。 */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   background: rgba(0, 0, 0, 0.55);
   display: flex;
   align-items: center;
@@ -399,6 +404,9 @@ textarea:focus {
   z-index: 100;
   /* iOS safe-area */
   padding-bottom: max(16px, env(safe-area-inset-bottom));
+  /* backdrop 上での pan / zoom ジェスチャを禁止。背景がスクロールしないので
+     visualViewport がずれ続ける問題を起こさない。 */
+  touch-action: none;
 }
 
 .modal {
