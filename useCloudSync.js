@@ -176,14 +176,20 @@ export function useCloudSync() {
   }, [code]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── push loop ──────────────────────────────────────────────────────
-  // localStorage の内容変化を 1 秒 polling で検知、変化を見つけたら
+  // localStorage の内容変化を 1.5 秒 polling で検知、変化を見つけたら
   // 1.5 秒 debounce で PUT。
+  //
+  // ★ ここでも snapshotKey() (= exportAll().data だけを stringify) を使う。
+  // JSON.stringify(exportAll()) は呼ぶたびに新しい exportedAt を含むので
+  // 常に != になり、結果として「編集していない端末も 3 秒ごとに push し
+  // 続ける」状態になっていた。複数端末が並行運用されるとアイドル側の
+  // 古いデータが編集側を上書きするように見える致命バグ。
   useEffect(() => {
     if (!code) return;
-    lastSnapshotRef.current = JSON.stringify(exportAll());
+    lastSnapshotRef.current = snapshotKey();
 
     const localTimer = setInterval(() => {
-      const current = JSON.stringify(exportAll());
+      const current = snapshotKey();
       if (current === lastSnapshotRef.current) return;
       lastSnapshotRef.current = current;
       if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
