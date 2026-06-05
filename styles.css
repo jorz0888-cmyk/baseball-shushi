@@ -390,12 +390,15 @@ textarea:focus {
 /* Modal confirm dialog */
 .modal-backdrop {
   position: fixed;
-  /* inset:0 だと iOS で visualViewport とずれるので、初期値だけ全画面に
-     しておいて、JS の visualViewport API で実寸を毎フレーム上書きする。 */
   top: 0;
   left: 0;
   width: 100vw;
+  /* dvh = dynamic viewport height。iOS Safari/Chrome の最新版が対応していて、
+     キーボードが開くとブラウザ側が勝手に縮めてくれる。JS で追従する必要が
+     ない (前回の visualViewport JS だとアニメ中に offsetTop が暴れて modal が
+     下に動いてしまった)。dvh 非対応ブラウザ向けに 100vh フォールバック。 */
   height: 100vh;
+  height: 100dvh;
   background: rgba(0, 0, 0, 0.55);
   display: flex;
   align-items: center;
@@ -404,8 +407,7 @@ textarea:focus {
   z-index: 100;
   /* iOS safe-area */
   padding-bottom: max(16px, env(safe-area-inset-bottom));
-  /* backdrop 上での pan / zoom ジェスチャを禁止。背景がスクロールしないので
-     visualViewport がずれ続ける問題を起こさない。 */
+  /* backdrop 上での pan / zoom ジェスチャを禁止 (背景スクロール防止) */
   touch-action: none;
 }
 
@@ -417,6 +419,12 @@ textarea:focus {
   max-width: 360px;
   padding: 20px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  /* キーボードが出てモーダルが縦に収まらない時は内部スクロール。
+     ボタンが画面外に出て押せない事故を防ぐ。 */
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal-message {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 
 /**
@@ -43,39 +43,15 @@ export default function GameResultModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [onCancel]);
 
-  // ★ 本命修正: iOS Safari の position:fixed + virtual keyboard 互換問題。
-  //
-  // iOS でソフトキーボードが開くと「視覚ビューポート」だけ縮み、「レイアウト
-  // ビューポート」はそのまま。`position: fixed; inset: 0` はレイアウト基準
-  // なので、見た目では中央にあるモーダルが、当たり判定的には画面上端に
-  // 貼り付いたまま → ユーザのタップ座標は実際にはモーダルの「下にあるはず
-  // の場所」=日別入力グリッドや戻るボタンに当たる。「背景をずらすと直る」
-  // 現象はこのズレの大きさが変わるため。
-  //
-  // 対策: visualViewport API で本当に見えている領域に backdrop を毎フレーム
-  // 追従させる。これで当たり判定と見た目が一致する。
-  const backdropRef = useRef(null);
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-    function adjust() {
-      const el = backdropRef.current;
-      if (!el) return;
-      el.style.top = `${vv.offsetTop}px`;
-      el.style.left = `${vv.offsetLeft}px`;
-      el.style.width = `${vv.width}px`;
-      el.style.height = `${vv.height}px`;
-    }
-    adjust();
-    vv.addEventListener("resize", adjust);
-    vv.addEventListener("scroll", adjust);
-    return () => {
-      vv.removeEventListener("resize", adjust);
-      vv.removeEventListener("scroll", adjust);
-    };
-  }, []);
+  // ★ 修正方針:
+  // 前回 visualViewport API で backdrop を毎フレーム追従させたら、
+  // キーボードのアニメ中に offsetTop が暴れてモーダル自体が下にずれる
+  // 不具合が出た。代わりに CSS の 100dvh (dynamic viewport height) を
+  // 使う。dvh はブラウザ側がキーボード開閉に応じて勝手に縮めてくれる
+  // ので、JS で追従する必要がない＝ズレが発生しない。
+  // 当たり判定と見た目の同期は dvh + body スクロールロックで担保する。
 
-  // 加えて iOS 流の body スクロールロック (overflow:hidden だけだと iOS は
+  // iOS 流の body スクロールロック (overflow:hidden だけだと iOS は
   // 効かないので position:fixed + top:-scrollY のトリックを使う)。これで
   // ユーザがモーダル裏の背景を引きずって動かせなくなる。
   useEffect(() => {
@@ -125,7 +101,6 @@ export default function GameResultModal({
     // 来てもモーダルを閉じないようにする保険 (内側 div の stopPropagation と
     // 併用)。スマホで「点差をタップしたら画面がバックする」現象の対策。
     <div
-      ref={backdropRef}
       className="modal-backdrop"
       onClick={(e) => {
         if (e.target === e.currentTarget) onCancel();
