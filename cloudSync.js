@@ -30,6 +30,11 @@ import { mergeData } from "./mergeState.js";
 
 const CODE_KEY = "bb-calc-sync-code";
 const LAST_PUSH_KEY = "bb-calc-sync-last-push";
+// 最後に push (または apply) に成功した data の JSON 文字列。
+// useCloudSync の push effect が「mount をまたいで未 push の編集を検出」
+// するために永続化する。これが無いと Home→Daily→Home 遷移で
+// lastSnapshotRef が編集後の値で初期化され、編集が永久に push されない。
+const LAST_PUSHED_DATA_KEY = "bb-calc-sync-last-pushed-data";
 
 /** 同期コードの許容文字 — 紛らわしい O/0、I/1 を除外して読みやすく */
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -66,6 +71,7 @@ export function setStoredCode(code) {
   } else {
     localStorage.removeItem(CODE_KEY);
     localStorage.removeItem(LAST_PUSH_KEY);
+    localStorage.removeItem(LAST_PUSHED_DATA_KEY);
   }
 }
 
@@ -80,6 +86,27 @@ function getLastPushIso() {
 
 function recordLastPush(iso) {
   localStorage.setItem(LAST_PUSH_KEY, iso);
+}
+
+/**
+ * 最後に push (または apply) されたデータの JSON 文字列。
+ * useCloudSync が「マウント間にローカル localStorage が変わったか」を
+ * 検出するのに使う。
+ */
+export function getLastPushedData() {
+  return localStorage.getItem(LAST_PUSHED_DATA_KEY);
+}
+
+function setLastPushedData(jsonStr) {
+  if (jsonStr === null || jsonStr === undefined) {
+    localStorage.removeItem(LAST_PUSHED_DATA_KEY);
+    return;
+  }
+  try {
+    localStorage.setItem(LAST_PUSHED_DATA_KEY, jsonStr);
+  } catch {
+    // quota / disabled storage は無視
+  }
 }
 
 /**
@@ -141,6 +168,13 @@ export async function pushToCloud(code, options = {}) {
     if (reply?.cloudUpdatedAt) {
       recordLastPush(reply.cloudUpdatedAt);
     }
+    // 成功した時点で送ったデータが cloud と一致する。次の mount 時に
+    // 「ローカルが変わっていない」と正しく判定できるよう記録する。
+    try {
+      setLastPushedData(JSON.stringify(localSnapshot.data));
+    } catch {
+      // ignore
+    }
     return reply;
   }
 
@@ -189,5 +223,13 @@ export function applyRemote(remote) {
   applyBackup({ data: merged });
   if (remote.cloudUpdatedAt) {
     recordLastPush(remote.cloudUpdatedAt);
+  }
+  // cloud が持っているのは remote.data 側 (merged ではない)。
+  // ローカル追加分との差は次の push で吸収されるよう、lastPushedData は
+  // cloud 側 (= remote.data) を記録する。
+  try {
+    setLastPushedData(JSON.stringify(remote.data));
+  } catch {
+    // ignore
   }
 }

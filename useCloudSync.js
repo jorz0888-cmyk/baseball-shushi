@@ -7,6 +7,7 @@ import {
   applyRemote,
   getStoredCode,
   setStoredCode,
+  getLastPushedData,
 } from "./cloudSync.js";
 
 /**
@@ -106,10 +107,15 @@ export function useCloudSync() {
     try {
       setStatus("pushing");
       await pushToCloud(currentCode);
+      // pushToCloud が成功すると内部で LAST_PUSHED_DATA_KEY も更新されて
+      // いるので、それに合わせて localPoll の比較基準も同期させる。
+      // (これをしないと localPoll が「まだ未 push」と誤判定して再 push する)
+      lastSnapshotRef.current = getLastPushedData();
       setLastSync(new Date());
       setStatus("idle");
       setError(null);
     } catch (err) {
+      if (!aliveRef.current) return;
       setStatus("error");
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -179,14 +185,23 @@ export function useCloudSync() {
   // localStorage の内容変化を 1.5 秒 polling で検知、変化を見つけたら
   // 1.5 秒 debounce で PUT。
   //
-  // ★ ここでも snapshotKey() (= exportAll().data だけを stringify) を使う。
-  // JSON.stringify(exportAll()) は呼ぶたびに新しい exportedAt を含むので
-  // 常に != になり、結果として「編集していない端末も 3 秒ごとに push し
-  // 続ける」状態になっていた。複数端末が並行運用されるとアイドル側の
-  // 古いデータが編集側を上書きするように見える致命バグ。
+  // ★ 重要: lastSnapshotRef の初期値は「最後に成功した push の snapshot」
+  // を localStorage 永続キーから読む。マウント時点の snapshot を入れる
+  // 旧仕様だと、Home→Daily Input で編集→Home に戻ったときに編集後の値が
+  // 初期 snapshot になり、push が永久に発火しなかった。
   useEffect(() => {
     if (!code) return;
-    lastSnapshotRef.current = snapshotKey();
+
+    const lastPushedKey = getLastPushedData();
+    lastSnapshotRef.current = lastPushedKey;
+
+    // マウント時点でローカルが「最後に push した値」と違っていれば、
+    // 他画面で編集された未 push 分があるので push をスケジュールする。
+    const currentKey = snapshotKey();
+    if (currentKey !== lastPushedKey) {
+      if (pushTimerRef.current) clearTimeout(pushTimerRef.current);
+      pushTimerRef.current = setTimeout(() => doPush(code), PUSH_DEBOUNCE_MS);
+    }
 
     const localTimer = setInterval(() => {
       const current = snapshotKey();

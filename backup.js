@@ -148,6 +148,17 @@ export async function clearAll() {
     localStorage.removeItem(key);
   }
 
+  // 1.5) 同期タイムスタンプもリセット。
+  //   - bb-calc-sync-last-push を残すと、cleanAll 直後の reload で
+  //     「cloud.cloudUpdatedAt == 自分の lastPush」と判定されて
+  //     pull-apply が走らず、空のローカルを cloud に push して
+  //     cloud まで wipe してしまう (致命)。null にしておけば pull が
+  //     必ず apply されて cloud データがローカルに戻る。
+  //   - bb-calc-sync-last-pushed-data も合わせて消しておく
+  //     (applyRemote で再設定される)。
+  localStorage.removeItem("bb-calc-sync-last-push");
+  localStorage.removeItem("bb-calc-sync-last-pushed-data");
+
   // 2) sessionStorage（あれば）
   try {
     sessionStorage.clear();
