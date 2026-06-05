@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 /**
  * 試合結果入力モーダル。勝ち / 引分 / 負け の3択 + 勝/負時のみ点差を入力。
@@ -42,6 +43,22 @@ export default function GameResultModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [onCancel]);
 
+  // モーダル開いてる間は body スクロールをロック。
+  // iOS Safari は input フォーカスで「焦点を見える位置へ自動スクロール」を
+  // やるが、その副作用で fixed の modal がずれて、結果的にタップ位置と
+  // 実際のクリックターゲットが食い違って「点差をタップしたら背景に当たって
+  // モーダルが閉じる/画面が戻る」事故が起きていた。ロックでこれを抑える。
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    const prevPosition = document.body.style.position;
+    document.body.style.overflow = "hidden";
+    document.body.style.position = "relative"; // iOS でスクロール抑止の保険
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.body.style.position = prevPosition;
+    };
+  }, []);
+
   function save() {
     if (outcome === "draw") {
       onSave({ won: false, draw: true, scoreDiff: 0 });
@@ -51,7 +68,12 @@ export default function GameResultModal({
     onSave({ won: outcome === "win", draw: false, scoreDiff: n });
   }
 
-  return (
+  // ★ document.body 直下に Portal で描画する。
+  // モーダルを DailyInputScreen の DOM サブツリーに置くと、親 (グリッド・
+  // スティッキー列・スクロール領域) のイベントやスタッキングコンテキストと
+  // 干渉して、特にスマホで「タップが背景に届く」「画面が戻る」など説明し
+  // にくい挙動が起きる。body 直下に出すことで物理的に独立させ、影響を切る。
+  return createPortal(
     // バックドロップ click は target が背景そのもの (= currentTarget) のときだけ
     // onCancel する。タップ位置がドリフトして input 上の click が backdrop に
     // 来てもモーダルを閉じないようにする保険 (内側 div の stopPropagation と
@@ -103,7 +125,14 @@ export default function GameResultModal({
         </div>
 
         {outcome !== "draw" && (
-          <div className="score-diff">
+          // 入力エリアに対するタッチイベントも明示的に stopPropagation して、
+          // どんな経路でも backdrop に届かないようにする保険。
+          <div
+            className="score-diff"
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchEnd={(e) => e.stopPropagation()}
+          >
             <label>点差</label>
             {/* iOS の type=number ピッカーが「タップ→キーボード→スクロール
                 →click が backdrop に届く」みたいな副作用を起こすことがあるので
@@ -118,6 +147,7 @@ export default function GameResultModal({
               onChange={(e) =>
                 setScoreDiffStr(e.target.value.replace(/[^0-9]/g, ""))
               }
+              onClick={(e) => e.stopPropagation()}
             />
             <span className="neutral">点</span>
           </div>
@@ -138,6 +168,7 @@ export default function GameResultModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
