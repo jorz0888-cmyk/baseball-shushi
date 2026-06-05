@@ -1145,6 +1145,13 @@ html {
   white-space: nowrap;
 }
 
+/* 週間精算: 曜日別累計テーブルの上に出す説明キャプション */
+.day-totals-caption {
+  margin: 0 0 4px;
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
 /* 「週合計」th 直下の B収支式バリエーション表示 ((2分有り) など) */
 .summary-table-3col .th-sub {
   font-size: 10px;

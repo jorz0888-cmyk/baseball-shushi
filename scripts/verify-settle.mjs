@@ -136,6 +136,16 @@ console.log("\n■ worked example: 1 customer, mixed days");
   expectApprox(s.dailyTotals.tuesday, 70, "daily tue = +70");
   expectApprox(s.dailyTotals.wednesday, 0, "daily wed = 0");
   expectApprox(s.dailyTotals.thursday, -50, "daily thu = -50 (ハンデ1.3 引分=丸負け × 50pt)");
+  // 累計 2分無し: 月終→cumPlus=0,cumMinus=-50→noBu=-50
+  //               火終→cumPlus=70,cumMinus=-50→noBu=70*0.9-50=63-50=+13
+  //               水終→変化なし→+13
+  //               木終→cumPlus=70,cumMinus=-100→noBu=63-100=-37
+  //               金~日→変化なし→-37
+  expectApprox(s.dailyCumulativeNo2bu.monday, -50, "cumNo2bu mon = -50");
+  expectApprox(s.dailyCumulativeNo2bu.tuesday, 13, "cumNo2bu tue = 70*0.9-50 = +13");
+  expectApprox(s.dailyCumulativeNo2bu.wednesday, 13, "cumNo2bu wed = +13 (no change)");
+  expectApprox(s.dailyCumulativeNo2bu.thursday, -37, "cumNo2bu thu = 63-100 = -37");
+  expectApprox(s.dailyCumulativeNo2bu.sunday, -37, "cumNo2bu sun = without2bu");
   expectApprox(s.firstHalfSubtotal, 20, "前半 (月火水) = +20");
   expectApprox(s.secondHalfSubtotal, -50, "後半 (木金土日) = -50");
   expectApprox(s.weekTotal, -30, "週合計 = -30");

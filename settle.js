@@ -38,7 +38,8 @@ export { SETTLE_RATES };
 
 /**
  * @typedef {Object} CustomerSettlement
- * @property {Record<string, number>} dailyTotals  — DAY_KEY -> row total
+ * @property {Record<string, number>} dailyTotals             — DAY_KEY -> row total (単純合計)
+ * @property {Record<string, number>} dailyCumulativeNo2bu    — DAY_KEY -> その日までの累計 (2分無し適用)
  * @property {number} firstHalfSubtotal            — 前半 (月火水) 小計
  * @property {number} secondHalfSubtotal           — 後半 (木金土日) 小計
  * @property {number} weekTotal                    — 週間合計（単純合計）
@@ -57,14 +58,21 @@ export { SETTLE_RATES };
 export function settleCustomer(weekData, customer) {
   /** @type {Record<string, number>} */
   const dailyTotals = {};
+  /** @type {Record<string, number>} 各曜日「までの」累計に 2分無し式を適用した値 */
+  const dailyCumulativeNo2bu = {};
   // セル単位の正負を週全体で累積する
   let plusSum = 0;
   let minusSum = 0;
+  // 曜日表示用に「その日までの」累計を別途持つ
+  let cumPlus = 0;
+  let cumMinus = 0;
 
   for (const dk of DAY_KEYS) {
     const day = weekData?.[dk];
     if (!day) {
       dailyTotals[dk] = 0;
+      // この曜日に試合無しでも、累計はそれまでの値を保つ (週内ずっと同じ値が並ぶ表示にする)
+      dailyCumulativeNo2bu[dk] = applyNo2bu(cumPlus, cumMinus);
       continue;
     }
     const { rowTotals, cells } = aggregateDay(day, [customer]);
@@ -78,9 +86,18 @@ export function settleCustomer(weekData, customer) {
     for (const gameId of Object.keys(customerCells)) {
       const v = customerCells[gameId];
       if (v == null) continue;
-      if (v > 0) plusSum += v;
-      else if (v < 0) minusSum += v;
+      if (v > 0) {
+        plusSum += v;
+        cumPlus += v;
+      } else if (v < 0) {
+        minusSum += v;
+        cumMinus += v;
+      }
     }
+
+    // この曜日終了時点での累計に 2分無し (+×0.90 / −×1.00) を適用。
+    // 例: 火曜まで +10、水曜セル −8 → 水曜表示は applyNo2bu(cumPlus, cumMinus) = +2
+    dailyCumulativeNo2bu[dk] = applyNo2bu(cumPlus, cumMinus);
   }
 
   const firstHalfSubtotal = FIRST_HALF_DAYS.reduce(
@@ -102,6 +119,7 @@ export function settleCustomer(weekData, customer) {
 
   return {
     dailyTotals,
+    dailyCumulativeNo2bu,
     firstHalfSubtotal,
     secondHalfSubtotal,
     weekTotal,
