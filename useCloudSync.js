@@ -9,6 +9,19 @@ import {
   setStoredCode,
 } from "./cloudSync.js";
 
+/**
+ * シリアライズ済み snapshot 用ヘルパ。pull 中にローカルが変わっていないか
+ * 判定するために使う。JSON.stringify は同じデータなら（同じブラウザ内では）
+ * 同じ文字列を返すという挙動に依拠した素朴な等価判定。
+ */
+function snapshotKey() {
+  try {
+    return JSON.stringify(exportAll());
+  } catch {
+    return null;
+  }
+}
+
 // Upstash Free 30 MB tier の 10,000 commands/日 に余裕を持たせて 60 秒
 // ポーリング。2 端末で約 2,880 GET/日 + 編集の PUT 数十回。1日 3,000
 // commands 程度で済むので、複数ペアが同居しても枠内に収まる。
@@ -48,6 +61,24 @@ export function useCloudSync() {
   const pullTimerRef = useRef(null);
   const localPollTimerRef = useRef(null);
   const isPushingRef = useRef(false);
+  // ★ doPull の fetch 中にコンポーネントが unmount したり sync が停止
+  //   されたりした場合、apply / reload を行わないためのフラグ。
+  //   Home から Daily Input に画面遷移すると CloudSyncCard が unmount
+  //   されるが、unmount 前に発火していた pull の Promise はそのまま走り続ける。
+  //   そのままだと別画面でユーザー編集中に reload してしまい、入力が消える。
+  const aliveRef = useRef(true);
+  const currentCodeRef = useRef(code);
+
+  useEffect(() => {
+    aliveRef.current = true;
+    return () => {
+      aliveRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    currentCodeRef.current = code;
+  }, [code]);
 
   function start(newCode) {
     setStoredCode(newCode);
@@ -83,8 +114,28 @@ export function useCloudSync() {
   async function doPull(currentCode) {
     try {
       setStatus("pulling");
+      // pull 開始時のローカル snapshot。fetch 中にユーザーが編集していたら
+      // apply はスキップして、後続の push に同期を任せる（編集を上書きしない）。
+      const preSnapshot = snapshotKey();
       const remote = await pullFromCloud(currentCode);
+
+      // unmount / sync 停止された後は apply / reload を行わない。
+      // Home → Daily Input 遷移中に pull が resolve するケースの保護。
+      // これが無いと、別画面でのユーザー編集が reload で消える。
+      if (!aliveRef.current) return;
+      if (currentCodeRef.current !== currentCode) return;
+
       if (remote && shouldApplyRemote(remote)) {
+        // pull の往復中にローカルが変わったら、ユーザーが入力したばかりの
+        // 値を remote(古い)で上書きしないように apply をスキップ。push が
+        // 1〜3 秒後に走って cloud と整合する。
+        const postSnapshot = snapshotKey();
+        if (postSnapshot !== preSnapshot) {
+          setLastSync(new Date());
+          setStatus("idle");
+          setError(null);
+          return;
+        }
         applyRemote(remote);
         // useLocalStorage hook は外部書き換えを検知しない → reload
         window.location.reload();
@@ -94,6 +145,7 @@ export function useCloudSync() {
       setStatus("idle");
       setError(null);
     } catch (err) {
+      if (!aliveRef.current) return; // unmount 後の setState は noop
       setStatus("error");
       setError(err instanceof Error ? err.message : String(err));
     }
