@@ -136,11 +136,21 @@ console.log("\n■ worked example: 1 customer, mixed days");
   expectApprox(s.dailyTotals.tuesday, 70, "daily tue = +70");
   expectApprox(s.dailyTotals.wednesday, 0, "daily wed = 0");
   expectApprox(s.dailyTotals.thursday, -50, "daily thu = -50 (ハンデ1.3 引分=丸負け × 50pt)");
-  // 累計 2分無し: 月終→cumPlus=0,cumMinus=-50→noBu=-50
-  //               火終→cumPlus=70,cumMinus=-50→noBu=70*0.9-50=63-50=+13
-  //               水終→変化なし→+13
-  //               木終→cumPlus=70,cumMinus=-100→noBu=63-100=-37
-  //               金~日→変化なし→-37
+  // 各日単独の 2分無し:
+  //   月 (cell -50): plus=0,minus=-50 → -50
+  //   火 (cell +70): plus=70,minus=0 → 70*0.9 = +63
+  //   水 (empty): 0
+  //   木 (cell -50): plus=0,minus=-50 → -50
+  //   金~日: 0
+  expectApprox(s.dailyTotalsNo2bu.monday, -50, "dayNo2bu mon = -50");
+  expectApprox(s.dailyTotalsNo2bu.tuesday, 63, "dayNo2bu tue = 70*0.9 = +63");
+  expectApprox(s.dailyTotalsNo2bu.wednesday, 0, "dayNo2bu wed = 0");
+  expectApprox(s.dailyTotalsNo2bu.thursday, -50, "dayNo2bu thu = -50");
+  expectApprox(s.dailyTotalsNo2bu.friday, 0, "dayNo2bu fri = 0");
+  // 線形性: dailyTotalsNo2bu の総和 === without2bu
+  const sumDay = Object.values(s.dailyTotalsNo2bu).reduce((a, b) => a + b, 0);
+  expectApprox(sumDay, s.without2bu, "Σ dayNo2bu === without2bu");
+  // 累計 2分無し: 月終→-50, 火終→+13, 水終→+13, 木終→-37, 金~日→-37
   expectApprox(s.dailyCumulativeNo2bu.monday, -50, "cumNo2bu mon = -50");
   expectApprox(s.dailyCumulativeNo2bu.tuesday, 13, "cumNo2bu tue = 70*0.9-50 = +13");
   expectApprox(s.dailyCumulativeNo2bu.wednesday, 13, "cumNo2bu wed = +13 (no change)");

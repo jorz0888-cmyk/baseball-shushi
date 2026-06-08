@@ -39,6 +39,7 @@ export { SETTLE_RATES };
 /**
  * @typedef {Object} CustomerSettlement
  * @property {Record<string, number>} dailyTotals             — DAY_KEY -> row total (単純合計)
+ * @property {Record<string, number>} dailyTotalsNo2bu        — DAY_KEY -> その日単独の値に 2分無し適用
  * @property {Record<string, number>} dailyCumulativeNo2bu    — DAY_KEY -> その日までの累計 (2分無し適用)
  * @property {number} firstHalfSubtotal            — 前半 (月火水) 小計 (raw simple sum、後方互換)
  * @property {number} secondHalfSubtotal           — 後半 (木金土日) 小計 (raw simple sum、後方互換)
@@ -60,6 +61,8 @@ export { SETTLE_RATES };
 export function settleCustomer(weekData, customer) {
   /** @type {Record<string, number>} */
   const dailyTotals = {};
+  /** @type {Record<string, number>} 各曜日「単独の」値に 2分無し式を適用した値 */
+  const dailyTotalsNo2bu = {};
   /** @type {Record<string, number>} 各曜日「までの」累計に 2分無し式を適用した値 */
   const dailyCumulativeNo2bu = {};
   // セル単位の正負を週全体で累積する
@@ -80,6 +83,7 @@ export function settleCustomer(weekData, customer) {
     const day = weekData?.[dk];
     if (!day) {
       dailyTotals[dk] = 0;
+      dailyTotalsNo2bu[dk] = 0;
       // この曜日に試合無しでも、累計はそれまでの値を保つ (週内ずっと同じ値が並ぶ表示にする)
       dailyCumulativeNo2bu[dk] = applyNo2bu(cumPlus, cumMinus);
       continue;
@@ -91,6 +95,9 @@ export function settleCustomer(weekData, customer) {
     // 仕様: 「1試合ずつ計算を出さないとずれが出る」 — 日合計で先に
     // 相殺してから 2分を掛けると混在日でズレるため、セル単位で
     // 集計してから 2分式を適用する。
+    // この日単独の plus / minus も別途集計する (dailyTotalsNo2bu 用)。
+    let dayPlus = 0;
+    let dayMinus = 0;
     const customerCells = cells[customer.id] ?? {};
     for (const gameId of Object.keys(customerCells)) {
       const v = customerCells[gameId];
@@ -98,18 +105,21 @@ export function settleCustomer(weekData, customer) {
       if (v > 0) {
         plusSum += v;
         cumPlus += v;
+        dayPlus += v;
         if (isFirstHalf) firstHalfPlus += v;
         else secondHalfPlus += v;
       } else if (v < 0) {
         minusSum += v;
         cumMinus += v;
+        dayMinus += v;
         if (isFirstHalf) firstHalfMinus += v;
         else secondHalfMinus += v;
       }
     }
 
+    // この日単独の 2分無し値。例: 火曜の raw +5000 → 5000×0.9 = +4500
+    dailyTotalsNo2bu[dk] = applyNo2bu(dayPlus, dayMinus);
     // この曜日終了時点での累計に 2分無し (+×0.90 / −×1.00) を適用。
-    // 例: 火曜まで +10、水曜セル −8 → 水曜表示は applyNo2bu(cumPlus, cumMinus) = +2
     dailyCumulativeNo2bu[dk] = applyNo2bu(cumPlus, cumMinus);
   }
 
@@ -140,6 +150,7 @@ export function settleCustomer(weekData, customer) {
 
   return {
     dailyTotals,
+    dailyTotalsNo2bu,
     dailyCumulativeNo2bu,
     firstHalfSubtotal,
     secondHalfSubtotal,

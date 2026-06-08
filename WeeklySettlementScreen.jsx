@@ -170,7 +170,7 @@ export default function WeeklySettlementScreen({ back }) {
 
 function CustomerCard({ customer, settlement }) {
   const {
-    dailyCumulativeNo2bu,
+    dailyTotalsNo2bu,
     firstHalfSubtotalNo2bu,
     secondHalfSubtotalNo2bu,
     plusSum,
@@ -184,9 +184,10 @@ function CustomerCard({ customer, settlement }) {
     <section className="card customer-card">
       <h2 className="customer-card-name">{customer.name}</h2>
 
-      {/* 曜日別表示: その日までの累計に「2分無し」式 (+×0.90 / −×1.00) を
-          適用した値を出す。例: 火曜+10、水曜-8 なら水曜セルは +2。 */}
-      <p className="day-totals-caption">曜日別 累計（2分無し: +×0.90 / −×1.00）</p>
+      {/* 曜日別表示: 各曜日「単独」の値に 2分無し式 (+×0.90 / −×1.00) を
+          適用した結果。累計ではなくその日の勝ち負け。
+          例: 火曜 raw +5000 → +4500 / 水曜 raw -5 → -5 */}
+      <p className="day-totals-caption">曜日別（2分無し: +×0.90 / −×1.00）</p>
       <table className="day-totals-table">
         <thead>
           <tr>
@@ -199,7 +200,7 @@ function CustomerCard({ customer, settlement }) {
           <tr>
             {DAY_KEYS.map((dk) => (
               <td key={dk} className="num">
-                <Sn value={dailyCumulativeNo2bu[dk]} small />
+                <Sn value={dailyTotalsNo2bu[dk]} small />
               </td>
             ))}
           </tr>
